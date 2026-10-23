@@ -2,7 +2,7 @@ import { _ } from '../helper.js'
 
 export default {
   title: _('日志查看', 'Logs', '日志查看', 'ログ', '로그', 'Nhật ký', 'Registros', '', 'Журналы', 'Journaux', 'Protokolle'),
-  desc: _('查看 EvoFlow 各服务日志', 'View EvoFlow service logs', '查看 EvoFlow 各服务日志', 'EvoFlow サービスログを表示', 'EvoFlow 서비스 로그 보기', 'Xem nhật ký dịch vụ EvoFlow', 'Ver registros del servicio EvoFlow', 'Ver logs do serviço EvoFlow', 'Просмотр журналов EvoFlow', 'Voir les journaux EvoFlow', 'EvoFlow-Protokolle anzeigen'),
+  desc: _('查看 电商运营终端 各服务日志', 'View 电商运营终端 service logs', '查看 电商运营终端 各服务日志', '电商运营终端 サービスログを表示', '电商运营终端 서비스 로그 보기', 'Xem nhật ký dịch vụ 电商运营终端', 'Ver registros del servicio 电商运营终端', 'Ver logs do serviço 电商运营终端', 'Просмотр журналов 电商运营终端', 'Voir les journaux 电商运营终端', '电商运营终端-Protokolle anzeigen'),
   tabGateway: _('Gateway 日志', 'Gateway Logs', 'Gateway 日志', 'Gateway ログ', 'Gateway 로그', 'Gateway', 'Gateway', 'Gateway', 'Gateway', 'Gateway', 'Gateway'),
   tabGatewayErr: _('Gateway 错误', 'Gateway Errors', 'Gateway 错误', 'Gateway エラー', 'Gateway 오류', 'Lỗi Gateway', 'Errores Gateway', 'Erros Gateway', 'Ошибки Gateway', 'Erreurs Gateway', 'Gateway-Fehler'),
   tabGuardian: _('守护进程', 'Guardian', '守护进程', 'ガーディアン', '가디언'),

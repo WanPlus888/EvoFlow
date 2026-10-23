@@ -22,6 +22,24 @@ DMG="${DMG_DIR}/${PRODUCT}_${VERSION}_aarch64.dmg"
 SCRIPT="${DMG_DIR}/bundle_dmg.sh"
 
 if [ ! -d "$APP" ]; then echo "✗ 未找到 $APP"; exit 1; fi
+
+# ── 网关 sidecar 后装（tauri-build 2.6.2 资源拷贝在大目录上报 ENOTDIR，绕开）──
+GW_SRC="src-tauri/binaries/evoflow-gateway"
+GW_DST="${APP}/Contents/Resources/binaries/evoflow-gateway"
+if [ -d "$GW_SRC" ]; then
+  echo "[build] 后装网关 sidecar → Resources/binaries/"
+  rm -rf "$GW_DST"
+  mkdir -p "$(dirname "$GW_DST")"
+  cp -R "$GW_SRC" "$GW_DST"
+  # 7z/跨盘拷贝可能丢可执行位——网关二进制丢了会 spawn 失败无限 respawn
+  chmod +x "$GW_DST/evoflow-gateway" 2>/dev/null || true
+  chmod -R +x "$GW_DST/tools" 2>/dev/null || true
+  echo "[build] 重签名（ad-hoc）..."
+  codesign --force --deep -s - "$APP" 2>&1 | tail -2
+else
+  echo "⚠ 未找到 ${GW_SRC}，打包将不含真网关（仅供 UI 验证）"
+fi
+
 if [ ! -x "$SCRIPT" ]; then
   # tauri 只在 dmg 目标下释放该脚本；首次手动打包时从 tauri crate 缓存里找不到就报错
   echo "✗ 未找到 ${SCRIPT}（先跑一次 npx tauri build --bundles dmg 让 tauri 释放脚本，允许其失败）"; exit 1

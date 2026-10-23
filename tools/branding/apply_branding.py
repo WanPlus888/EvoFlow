@@ -32,6 +32,20 @@ DISPLAY_FILES = [
     "skills/public/evoflow-admin/SKILL.md",
     "skills/public/evoflow-admin/references/product-intro.md",
     "skills/public/evoflow-admin/references/assets-contract.md",
+    # 二批补漏（React 时代组件与运行时兜底字面量）
+    "evopanel/src/lib/desktop-notification.js",
+    "evopanel/src/components/mobile-tabbar.js",
+    "evopanel/src/lib/background-voice.js",
+    "evopanel/src/react/chat-app/agents/resolve-session-role-ui.ts",
+    "evopanel/src/react/chat-app/agents/start-new-chat-with-preset-agent.ts",
+    "evopanel/src/zcode-ui/i18n/locales/en-US.ts",
+    "evopanel/src/zcode-ui/i18n/locales/zh-CN.ts",
+    "evopanel/src/zcode-ui/DesktopTopOverlay.tsx",
+    "evopanel/src/locales/modules/gateway.js",
+    "evopanel/src/locales/modules/agents.js",
+    "evopanel/src/locales/modules/logs.js",
+    "evopanel/src/locales/modules/usage.js",
+    "evopanel/src/boot/backend-warm.js",
 ]
 
 # 保护段：命中后不参与替换（URL 与归属引用）
