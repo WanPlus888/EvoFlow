@@ -3496,7 +3496,7 @@ export function createChatWsOnEventHandler(ctx: ChatWsOnEventCtx) {
         }
         if (!isBackground && skPersist) {
           void notifyDesktopCompletion({
-            title: 'EvoFlow · 对话完成',
+            title: '电商运营终端 · 对话完成',
             body: '本轮 AI 回复已完成',
             tag: `chat-final:${skPersist}`,
           })

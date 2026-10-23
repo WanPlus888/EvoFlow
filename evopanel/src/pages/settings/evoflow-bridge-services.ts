@@ -1,5 +1,5 @@
 /**
- * EvoFlow 设置中心 — ZCode UI 桥接服务工厂（共享模块）。
+ * 电商运营终端 设置中心 — ZCode UI 桥接服务工厂（共享模块）。
  *
  * mcp-server-management.tsx 与 plugin-management.tsx 两个桥接页共用的
  * Gateway HTTP service 实现：mcpSyncService / settingsSyncService /
@@ -84,7 +84,7 @@ function toNativeMcpServerRecord(name: string, s: GatewayMcpConfigServer) {
 // ---------------------------------------------------------------------------
 
 export function createEvoflowMcpSyncService(): IMcpSyncService {
-  // 整个 service 强转 as IMcpSyncService — ZCode 的 McpSync schema 与 EvoFlow
+  // 整个 service 强转 as IMcpSyncService — ZCode 的 McpSync schema 与 电商运营终端
   // gateway 形态不严格匹配, 只覆盖 load/list/save 三条主线。
   return {
     async loadMcpFromUserDirectory(_req: unknown) {

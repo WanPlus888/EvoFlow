@@ -7,7 +7,7 @@
  * - 缓存分区只有一个：`persist:zcode-embedded-browser`，标签之间共用 cookie/缓存
  * - 布局是 DOM，guest 跟着槽位走，没有单独的屏幕坐标
  *
- * EvoFlow 的 WebView2 是主窗口里的一个子 HWND，不会跟着 React 隐藏，
+ * 电商运营终端 的 WebView2 是主窗口里的一个子 HWND，不会跟着 React 隐藏，
  * 也无法参与 CSS z-index。原生窗口也只有一个：`browser-embed-primary`。
  *
  * 显示条件（同时满足）：

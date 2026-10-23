@@ -1,5 +1,5 @@
 // =============================================================================
-// ZCode Plugin Management Service - Ported to EvoFlow MCP Server Management
+// ZCode Plugin Management Service - Ported to 电商运营终端 MCP Server Management
 // Source: ZCode/packages/services/src/plugins/pluginManagement.ts
 // Changes: Plugin → MCP Server
 // =============================================================================

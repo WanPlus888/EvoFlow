@@ -1,8 +1,8 @@
-# 预设角色创建流程（EvoFlow）
+# 预设角色创建流程（电商运营终端）
 
 > 本文件是 **evoflow-admin** 技能的「对话里快速创建预设角色」章节（原独立技能 `preset-role-assistant` 已合并至此）。
 
-在 EvoFlow 对话里创建角色时，**不要**调用已退役的 `create_agent` / `update_agent` / `list_agents` / `list_skills_catalog` / `list_assignable_tools`。统一走：
+在 电商运营终端 对话里创建角色时，**不要**调用已退役的 `create_agent` / `update_agent` / `list_agents` / `list_skills_catalog` / `list_assignable_tools`。统一走：
 
 1. 日常：内置工具 **`platform`**（`agents.*` / `skills.*`）
 2. 脚本或批处理：本技能 + **`terminal`** 跑 `evoflow agents …`

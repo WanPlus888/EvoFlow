@@ -2,7 +2,7 @@
 
 Bundled from [heygen-com/hyperframes](https://github.com/heygen-com/hyperframes) (Apache-2.0).
 
-## EvoFlow usage
+## 电商运营终端 usage
 
 1. Enable skills in **EvoPanel → 扩展 → Skills** (public skills default on unless disabled in `extensions_config.json`).
 2. Assign to your agent under **Agent 管理 → 技能** (entry: `hyperframes`, plus workflow skills as needed).

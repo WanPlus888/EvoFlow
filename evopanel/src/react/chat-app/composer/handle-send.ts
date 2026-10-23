@@ -261,7 +261,7 @@ export async function handleSend(
         const { api } = await import('../../../lib/tauri-api.js')
         await api.chatUpdateContext(sessionKey, { use_claude_code_chat: false })
         setRoleUiNonce((n) => n + 1)
-        toast('已切换为 EvoFlow（当前会话）', 'success')
+        toast('已切换为 电商运营终端（当前会话）', 'success')
         return
       }
       // /goal <目标内容> — 直接启动当前会话目标（不进入普通聊天）
@@ -286,7 +286,7 @@ export async function handleSend(
         void goal.goal.startGoalWithPrompt(goalText)
         return
       }
-      // 本机聊天：用短指令确认目标方案（飞书侧同一会话若在本机打开 EvoFlow，也可用输入框发相同词）
+      // 本机聊天：用短指令确认目标方案（飞书侧同一会话若在本机打开 电商运营终端，也可用输入框发相同词）
       if (/^(开始|确认|启动目标|开始目标|启动托管|开始托管)$/.test(slash)) {
         const fromPanel = threadPanelState.goalProposal
         const fromRows = !fromPanel ? extractLatestGoalProposalFromRows(rows) : null

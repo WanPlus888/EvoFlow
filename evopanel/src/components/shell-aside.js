@@ -512,7 +512,7 @@ export function initShellAside(el) {
     <div class="react-chat-aside-toolbar">
       <div class="react-chat-aside-brand">
         <img class="react-chat-aside-brand-logo" src="/images/logo.png" alt="" width="18" height="18" />
-        <span class="react-chat-aside-toolbar-title">EvoFlow</span>
+        <span class="react-chat-aside-toolbar-title">电商运营终端</span>
         <span class="react-chat-aside-version">v${APP_VERSION}</span>
       </div>
       <button type="button" class="react-chat-aside-icon-btn shell-aside-collapse-btn" id="shell-aside-collapse" title="折叠侧栏" aria-label="折叠侧栏">

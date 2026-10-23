@@ -171,7 +171,7 @@ export function useWorkspaceServicesResolution(
   workspaceIdentity?: string | null,
   remoteTarget?: unknown,
 ): WorkspaceServicesResolution {
-  // EvoFlow V4 只读投影宿主等独立挂载场景没有 ServiceProvider：回退到 stub 访问器
+  // 电商运营终端 V4 只读投影宿主等独立挂载场景没有 ServiceProvider：回退到 stub 访问器
   // （任意服务解构为 undefined，调用方各自降级），而不是抛错炸掉整棵时间线。
   // ZCode 宿主（SessionPane 等）Provider 在场时 useOptionalServices 返回真实访问器，行为不变。
   const currentContextServices = useOptionalServices() ?? STANDALONE_STUB_SERVICES;
@@ -181,7 +181,7 @@ export function useWorkspaceServicesResolution(
     workspaceIdentity,
     remoteTarget,
   );
-  // 同 useResolvedRemoteWorkspaceSessionId：无 TabStoreProvider（EvoFlow V4 宿主）时
+  // 同 useResolvedRemoteWorkspaceSessionId：无 TabStoreProvider（电商运营终端 V4 宿主）时
   // 回退空 tab → isRemoteTarget=false，继续用当前 ServiceProvider 的局部 fileService。
   const isRemoteTarget = useOptionalTabStore((state) =>
     resolveWorkspaceServiceIsRemoteTarget({

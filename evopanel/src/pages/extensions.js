@@ -126,7 +126,7 @@ export async function render() {
         <span class="ext-hero-icon" aria-hidden="true">${ICONS.puzzle}</span>
         <div class="ext-hero-text">
           <h1 class="page-title">Agent 应用</h1>
-          <p class="page-desc">把网页应用挂进 EvoFlow：线上网址、本地目录或 zip 包，装好即可在侧栏与聊天里打开。</p>
+          <p class="page-desc">把网页应用挂进 电商运营终端：线上网址、本地目录或 zip 包，装好即可在侧栏与聊天里打开。</p>
         </div>
       </div>
       <div class="ext-page-actions">

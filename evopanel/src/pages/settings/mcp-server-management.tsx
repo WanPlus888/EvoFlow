@@ -1,16 +1,16 @@
 /**
- * EvoFlow 设置中心 — MCP 服务器管理 Tab
+ * 电商运营终端 设置中心 — MCP 服务器管理 Tab
  *
  * 原样引用 ZCode 的 <McpSettingsSection> React 组件,
- * 通过 React 18 createRoot 桥接到 EvoFlow vanilla JS hub.js.
+ * 通过 React 18 createRoot 桥接到 电商运营终端 vanilla JS hub.js.
  *
  * Provider 树:
  *   - TabStoreProvider     → zustand store, module load 即就绪
  *   - PlatformProvider     → 显式 IPlatformService (40+ 可选方法占位)
  *   - ServiceProvider      → 真实 3 个 service:
  *     · mcpSyncService        = 读 /api/config/mcp-servers + /api/observability/mcp-status
- *     · pluginManagementService = EvoFlow 官方市场 + 8 个预设 availablePlugins
- *     · settingsSyncService   = no-op (EvoFlow 不经 ZCode settings sync)
+ *     · pluginManagementService = 电商运营终端 官方市场 + 8 个预设 availablePlugins
+ *     · settingsSyncService   = no-op (电商运营终端 不经 ZCode settings sync)
  *
  * 数据加载:
  *   useEnsureWorkspaceMcpLoaded 内部会自动:
@@ -57,7 +57,7 @@ import "@/styles-bridge.css";
 const client = new EvoFlowMcpServerManagementClient();
 
 // ---------------------------------------------------------------------------
-// 1. mcpSyncService 真实实现 —— 调 EvoFlow Gateway HTTP
+// 1. mcpSyncService 真实实现 —— 调 电商运营终端 Gateway HTTP
 // ---------------------------------------------------------------------------
 
 interface GatewayMcpConfigServer {
@@ -116,7 +116,7 @@ async function gatewaySendJson<T>(url: string, method: string, body?: unknown): 
 }
 
 function createEvoflowMcpSyncService(): IMcpSyncService {
-  // 整个 service 强转 as IMcpSyncService — ZCode 的 McpSync schema 与 EvoFlow
+  // 整个 service 强转 as IMcpSyncService — ZCode 的 McpSync schema 与 电商运营终端
   // gateway 形态不严格匹配, 我们只覆盖 load/list/save 三条主线, 其余 noop
   // 由 IPluginManagementService 一样的"as unknown as"模式绕开.
   return {
@@ -209,7 +209,7 @@ function createEvoflowMcpSyncService(): IMcpSyncService {
 }
 
 // ---------------------------------------------------------------------------
-// 2. pluginManagementService —— EvoFlow 官方市场 + 8 个预设
+// 2. pluginManagementService —— 电商运营终端 官方市场 + 8 个预设
 // ---------------------------------------------------------------------------
 
 const EVOFLOW_MARKETPLACE_PRESET: Array<{
@@ -271,7 +271,7 @@ const EVOFLOW_MARKETPLACE_PRESET: Array<{
 ];
 
 function createEvoflowPluginManagementService(): IPluginManagementService {
-  // 大部分方法是 install/uninstall/configure 链路, EvoFlow 通过 HTTP PUT/DELETE
+  // 大部分方法是 install/uninstall/configure 链路, 电商运营终端 通过 HTTP PUT/DELETE
   // 直接调 /api/config/mcp-servers/{name} 完成; 不严格匹配 ZCode 返回 schema
   // 用 as unknown as 让所有方法都 "存在".
   const noop = async () => undefined;
@@ -282,8 +282,8 @@ function createEvoflowPluginManagementService(): IPluginManagementService {
       marketplaces: [
         {
           id: EVOFLOW_OFFICIAL_MCP_MARKETPLACE_ID,
-          name: "EvoFlow 官方市场",
-          description: "EvoFlow 预置的 8 个常用 MCP 服务器。",
+          name: "电商运营终端 官方市场",
+          description: "电商运营终端 预置的 8 个常用 MCP 服务器。",
           enabled: true,
           sourceKind: "official",
           sourceUrl: "https://evoflow.local/marketplace/official",
@@ -455,7 +455,7 @@ const stubPlatform: IPlatformService = {
 function EvoflowMcpApp(): ReactElement {
   const services = createEvoflowServiceAccessor();
 
-  // EvoFlow 启动时没注入 mcpPlatformService / mcpDirectoryService,
+  // 电商运营终端 启动时没注入 mcpPlatformService / mcpDirectoryService,
   // useEnsureWorkspaceMcpLoaded 因为 workspace services 不在而不会触发.
   // 这里在 mount 后主动灌入 + 调 store 的 ensure/initialize, 拉真实数据.
   useEffect(() => {

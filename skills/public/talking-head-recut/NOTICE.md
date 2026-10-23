@@ -40,6 +40,6 @@ SOFTWARE.
 
 ## GSAP
 
-Composition examples may use GSAP. EvoFlow does **not** vendor `gsap.min.js`.
+Composition examples may use GSAP. 电商运营终端 does **not** vendor `gsap.min.js`.
 Fetch or CDN-load GSAP yourself under GreenSock's license:
 https://gsap.com/standard-license

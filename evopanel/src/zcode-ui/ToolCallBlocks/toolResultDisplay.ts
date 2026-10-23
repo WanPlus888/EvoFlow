@@ -357,7 +357,7 @@ function parseDisplay(value: unknown): ToolResultDisplay | undefined {
           const mimeType = readOptionalString(item, "mimeType");
           const data = readOptionalString(item, "data");
           const artifactUri = readOptionalString(item, "artifactUri");
-          // EvoFlow CUA 只带 artifactUri（落盘 URL）；ZCode 原生常带 data。
+          // 电商运营终端 CUA 只带 artifactUri（落盘 URL）；ZCode 原生常带 data。
           // 任一通道合法即可，缺键为 undefined（放行），类型错误才为 null（拒收）。
           if (!mimeType || data === null || artifactUri === null) return [];
           if (!data && !artifactUri) return [];

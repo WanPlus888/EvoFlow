@@ -5,6 +5,6 @@ The directories `skills/public/superpowers-*` contain material adapted from **Su
 - Upstream: https://github.com/obra/superpowers  
 - License: MIT (see upstream repository `LICENSE`)
 
-Modifications in this EvoFlow fork include: skill IDs prefixed with `superpowers-` (mapping from the upstream `superpowers:*` namespace), path placeholders under `docs/user/evoflow/runs/<run-id>/`, and EvoFlow-specific integration notes in `superpowers-using-superpowers/SKILL.md`.
+Modifications in this 电商运营终端 fork include: skill IDs prefixed with `superpowers-` (mapping from the upstream `superpowers:*` namespace), path placeholders under `docs/user/evoflow/runs/<run-id>/`, and 电商运营终端-specific integration notes in `superpowers-using-superpowers/SKILL.md`.
 
-Upstream copyright and license terms apply to the incorporated skill text; EvoFlow-specific additions are provided under the same repository license as the surrounding EvoFlow tree.
+Upstream copyright and license terms apply to the incorporated skill text; 电商运营终端-specific additions are provided under the same repository license as the surrounding 电商运营终端 tree.

@@ -1,4 +1,4 @@
-// V4 双轨闸门 + 开关（EvoFlow 自有代码；渲染路径不依赖 zcode-ui 组件）。
+// V4 双轨闸门 + 开关（电商运营终端 自有代码；渲染路径不依赖 zcode-ui 组件）。
 // 协议语义是 ZCode v4 的（wire/seq/apply），协议客户端（无 UI 的 store 数据层）
 // 复用 vendor 树的 ConversationProjectionStore —— 它不是 UI 组件框架的一部分。
 //

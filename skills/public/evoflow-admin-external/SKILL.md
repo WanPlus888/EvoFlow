@@ -1,13 +1,13 @@
 ---
 name: evoflow-admin-external
-description: "供 外部 Agent / CLI 宿主 等外部 Agent 管理 EvoFlow 平台。先按 references/00a-desktop-setup.md 下载桌面端、配模型、检测 evoflow CLI；再读 00-concept-routing 与 03 全量 CLI、examples/。覆盖模型、联网搜索、技能、Agent应用、插件、Agent、岗位员工、事项、任务、审批、工作流、自动化、组织包、资产、MCP、知识、评测、日志与 platform HTTP。"
+description: "供 外部 Agent / CLI 宿主 等外部 Agent 管理 电商运营终端 平台。先按 references/00a-desktop-setup.md 下载桌面端、配模型、检测 evoflow CLI；再读 00-concept-routing 与 03 全量 CLI、examples/。覆盖模型、联网搜索、技能、Agent应用、插件、Agent、岗位员工、事项、任务、审批、工作流、自动化、组织包、资产、MCP、知识、评测、日志与 platform HTTP。"
 license: Apache-2.0
 version: 1.0.5
 author: EvovexAI
 homepage: https://github.com/EvovexAI/EvoFlow/tree/main/skills/public/evoflow-admin-external
 repository: https://github.com/EvovexAI/EvoFlow
 category: evoflow-system
-compatibility: "Requires EvoFlow CLI (evoflow) on PATH; Gateway recommended for dispatch/approvals. Works with runtime, 常见 Agent 宿主, Work Body."
+compatibility: "Requires 电商运营终端 CLI (evoflow) on PATH; Gateway recommended for dispatch/approvals. Works with runtime, 常见 Agent 宿主, Work Body."
 metadata:
   slug: evoflow-admin-external
   distribution: standalone-zip
@@ -25,7 +25,7 @@ tags:
   - work-body
 ---
 
-# EvoFlow Admin（外部 Agent 发行包）
+# 电商运营终端 Admin（外部 Agent 发行包）
 
 独立可分发（文件夹 + `SKILL.md` → `.zip`）。**无软链接。**
 

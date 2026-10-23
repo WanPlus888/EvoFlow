@@ -97,7 +97,7 @@ export function ConversationFileSummaryPanel({
     header.actions?.canRewindFiles === true &&
     !isReverted;
   const items = details?.items ?? [];
-  // EvoFlow 镜像 turnHeader 可能只有 turnId、无 entityId；rowId+稳定实体键即可拉详情。
+  // 电商运营终端 镜像 turnHeader 可能只有 turnId、无 entityId；rowId+稳定实体键即可拉详情。
   const target = useMemo<ConversationRowTarget | null>(() => {
     const entityId = String(header.entityId || header.turnId || "").trim();
     if (!entityId) return null;

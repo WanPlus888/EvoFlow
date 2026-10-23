@@ -69,7 +69,7 @@ import {
   type MarkdownImageProps,
 } from "@/components/ai-elements/markdown-image.js";
 import { STREAMDOWN_CONTROLS } from "@/components/ai-elements/streamdown-controls.js";
-// EvoFlow V4 面板：表格渲染切换到 EvoFlow 自有表格壳（MD/CSV 复制 + 放大对话框），
+// 电商运营终端 V4 面板：表格渲染切换到 电商运营终端 自有表格壳（MD/CSV 复制 + 放大对话框），
 // 仅在 V4ZCodeTimeline 提供该变体；ZCode 宿主缺省仍用 MarkdownTable。
 // 旧壳经相对路径跨树引用（react/components 无 zcode-ui 依赖，无环）。
 import { MarkdownTableShell as EvoflowMarkdownTableShell } from "../../../react/components/StreamdownRenderer.js";
@@ -1226,7 +1226,7 @@ interface MessageFileLinkProps {
 
 function MessageFileLink({ className, fileIconSrc, fileLink, onOpen }: MessageFileLinkProps) {
   const { intl } = useZCodeIntl();
-  // 与 MessageExternalLink 一致：Share / EvoFlow Web 可能没有 Desktop PlatformProvider。
+  // 与 MessageExternalLink 一致：Share / 电商运营终端 Web 可能没有 Desktop PlatformProvider。
   // 用 optional，缺席时只保留「打开」；不要抛错把整段 Markdown 降级成纯文本。
   const platform = useOptionalPlatform();
   const services = useOptionalServices();

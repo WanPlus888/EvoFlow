@@ -1,5 +1,5 @@
 // =============================================================================
-// ZCode Installed Plugin Roots - Ported to EvoFlow MCP Server Management
+// ZCode Installed Plugin Roots - Ported to 电商运营终端 MCP Server Management
 // Source: ZCode/packages/services/src/plugins/installedPluginRoots.ts
 // Changes: Plugin → MCP Server
 // =============================================================================

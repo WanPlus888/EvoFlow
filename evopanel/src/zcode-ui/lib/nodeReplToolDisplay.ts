@@ -10,7 +10,7 @@ export interface NodeReplDisplayImage {
   /** MCP / ZCode 内联截图。 */
   base64?: string;
   mimeType: string;
-  /** EvoFlow CUA：网关 browser-snapshots URL（无 base64 时由画廊异步解析）。 */
+  /** 电商运营终端 CUA：网关 browser-snapshots URL（无 base64 时由画廊异步解析）。 */
   url?: string;
 }
 
@@ -293,7 +293,7 @@ function extractImages(values: unknown[]): NodeReplDisplayImage[] {
   const visited = new Set<object>();
   const addImage = (value: Record<string, unknown>) => {
     // 旧 built-in result 使用 {images:[{base64,mimeType}]}，真实 MCP
-    // 使用 content 里的 {type:"image",data,mimeType}。EvoFlow CUA 投影用
+    // 使用 content 里的 {type:"image",data,mimeType}。电商运营终端 CUA 投影用
     // {mimeType,artifactUri}（无内联 base64）。专用 renderer 必须兼容三种形态。
     const base64 = readNonEmptyString(value.base64) ?? readNonEmptyString(value.data);
     const url =
@@ -338,7 +338,7 @@ function extractImages(values: unknown[]): NodeReplDisplayImage[] {
   return images;
 }
 
-/** EvoFlow 网关投影的 kind:"cua" display → Node REPL 卡用的 app + 截图。 */
+/** 电商运营终端 网关投影的 kind:"cua" display → Node REPL 卡用的 app + 截图。 */
 function extractFromEvoflowCuaDisplay(toolCall: ChatToolCall): {
   app?: NodeReplCuaApp;
   images: NodeReplDisplayImage[];

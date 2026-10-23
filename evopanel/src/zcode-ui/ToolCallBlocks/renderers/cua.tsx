@@ -335,7 +335,7 @@ export function isCuaToolCall(
   toolCall: ToolCallBlockRenderContext["toolCallNode"]["toolCall"],
 ): boolean {
   if (collectToolNames(toolCall).some(isZCodeCuaToolName)) return true;
-  // EvoFlow：CUA 经 mcp__node_repl__js 执行。ZCode 同款保留 Node REPL 卡（自述
+  // 电商运营终端：CUA 经 mcp__node_repl__js 执行。ZCode 同款保留 Node REPL 卡（自述
   // title + 结果画廊）；不要因 display.kind:"cua" 把整行抢走——否则 toolName 落
   // 到 computer_use、截图只认 screenshot/zoom base64，界面变成无图无标题。
   const toolNames = collectToolNames(toolCall)

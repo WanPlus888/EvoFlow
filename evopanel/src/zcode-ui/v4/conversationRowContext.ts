@@ -193,7 +193,7 @@ export interface ConversationRowRenderContext {
     params: Parameters<ConversationTransport["attachmentReadRange"]>[0],
   ) => ReturnType<ConversationTransport["attachmentReadRange"]>;
   /**
-   * EvoFlow 等宿主：在指定 toolCall 卡片正下方渲染授权 UI（对齐旧 MessageRow 行内审批）。
+   * 电商运营终端 等宿主：在指定 toolCall 卡片正下方渲染授权 UI（对齐旧 MessageRow 行内审批）。
    * 缺席则不渲染；不要用底部浮层代替，避免「乱弹」脱离对应命令行。
    */
   renderToolCallApproval?: (toolCallId: string) => ReactNode;

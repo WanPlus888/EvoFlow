@@ -11,7 +11,7 @@ metadata:
 
 # Trello Skill
 
-Manage Trello boards, lists, and cards directly from EvoFlow.
+Manage Trello boards, lists, and cards directly from 电商运营终端.
 
 ## Setup
 

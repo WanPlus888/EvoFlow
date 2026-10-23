@@ -1,4 +1,4 @@
-/** GLSL sources for EvoFlow liquid glass */
+/** GLSL sources for 电商运营终端 liquid glass */
 export const VS_SRC = `
   attribute vec2 a_pos;
   void main() {

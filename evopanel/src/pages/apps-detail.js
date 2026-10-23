@@ -1391,7 +1391,7 @@ export async function render() {
         variables: reqBody.variables,
         userMessage: reqBody.messages?.[0]?.content || '',
       })
-      const prodEnv = `# EvoFlow App OpenAPI
+      const prodEnv = `# 电商运营终端 App OpenAPI
 EVOFLOW_OPENAI_BASE_URL=${openAiBase}
 EVOFLOW_OPENAI_API_KEY=${keyPlaceholder}
 EVOFLOW_OPENAI_MODEL=${appId}

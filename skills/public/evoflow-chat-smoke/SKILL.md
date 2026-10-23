@@ -1,17 +1,17 @@
 ---
 name: evoflow-chat-smoke
 description: >-
-  自动验证 EvoFlow Web 聊天端到端流程：启动或复用本地 Vite、使用运行时提供的组织用户名/密码登录、进入聊天、新建会话、发送用户明确指定的验证消息，并检查用户消息显示、AI 运行结束和 assistant 回复。用户要求自动登录、聊天冒烟、验证 EvoPanel 聊天链路、重现登录后发送消息时使用。不会把凭据写入文件；只有显式运行发送测试用例才会创建会话并发送消息。
+  自动验证 电商运营终端 Web 聊天端到端流程：启动或复用本地 Vite、使用运行时提供的组织用户名/密码登录、进入聊天、新建会话、发送用户明确指定的验证消息，并检查用户消息显示、AI 运行结束和 assistant 回复。用户要求自动登录、聊天冒烟、验证 EvoPanel 聊天链路、重现登录后发送消息时使用。不会把凭据写入文件；只有显式运行发送测试用例才会创建会话并发送消息。
 ---
 
-# EvoFlow Chat Smoke
+# 电商运营终端 Chat Smoke
 
 用固定 Playwright E2E 测试重复完成 Web 登录与聊天验证。凭据只通过运行时环境变量读取，严禁写入此 skill、脚本、shell 历史或报告。
 
 ## 前置条件
 
 - 在 `evopanel/` 安装好的项目依赖（包含 `@playwright/test`）。
-- EvoFlow Gateway 可通过 Vite 代理访问，默认 `http://127.0.0.1:8070`。
+- 电商运营终端 Gateway 可通过 Vite 代理访问，默认 `http://127.0.0.1:8070`。
 - 一组有权登录本地目标组织的用户名和密码。
 - `EVOFLOW_E2E_PASSWORD` 用于组织账号登录；若环境还要求额外的面板访问密码，需另行完成该门禁，不能混用两类密码。
 
@@ -20,7 +20,7 @@ description: >-
 PowerShell：
 
 ```powershell
-$credential = Get-Credential -UserName 'admin' -Message 'EvoFlow 组织登录'
+$credential = Get-Credential -UserName 'admin' -Message '电商运营终端 组织登录'
 $env:EVOFLOW_E2E_USERNAME = $credential.UserName
 $env:EVOFLOW_E2E_PASSWORD = $credential.GetNetworkCredential().Password
 $env:EVOFLOW_E2E_MESSAGE = '验证消息：请只回复“收到”，用于确认聊天发送链路正常。'

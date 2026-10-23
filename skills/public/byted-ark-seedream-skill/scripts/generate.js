@@ -202,7 +202,7 @@ function detectPlatform() {
 }
 
 /**
- * 从 EvoFlow 配置中查找 Agent Plan 专属的 Key
+ * 从 电商运营终端 配置中查找 Agent Plan 专属的 Key
  */
 function findEvoFlowArkKey() {
   const configPath = path.join(homedir, '.evoflow', 'evoflow.json');
@@ -314,7 +314,7 @@ function autoDetectApiKey() {
       }
     }
   } else if (platform === 'evoflow') {
-    // EvoFlow: 配置文件中的 apiKey
+    // 电商运营终端: 配置文件中的 apiKey
     const evoflowKey = findEvoFlowArkKey();
     if (evoflowKey) {
       return { key: evoflowKey, source: 'evoflow', found: true };
@@ -375,7 +375,7 @@ async function autoSaveApiKey(apiKey) {
       case 'evoflow': {
         const configPath = path.join(homedir, '.evoflow', 'evoflow.json');
         if (!fs.existsSync(configPath)) {
-          console.error(`ℹ️  未找到 EvoFlow 配置文件，跳过保存`);
+          console.error(`ℹ️  未找到 电商运营终端 配置文件，跳过保存`);
           return false;
         }
         // 🛡️ 脱敏后备份，不泄漏已有密钥
@@ -392,7 +392,7 @@ async function autoSaveApiKey(apiKey) {
         // 🛡️ 设置严格的文件权限（仅所有者可读写）
         fs.chmodSync(configPath, 0o600);
         
-        console.error(`✅ API Key 已保存到 EvoFlow 全局配置！`);
+        console.error(`✅ API Key 已保存到 电商运营终端 全局配置！`);
         console.error(`   文件: ~/.evoflow/evoflow.json (权限 0600)`);
         console.error(`   备份: ~/.evoflow/evoflow.json.backup.before_agentplan (API Key 已脱敏)`);
         console.error(`   🎯 此 Key 将用于所有 Agent Plan 能力：语言模型、生图、生视频、Embedding 等`);
@@ -578,7 +578,7 @@ function validateConfig() {
     errors.push('   本次会临时使用；如需保存为全局配置，请明确说明「保存这个 API Key」。');
     errors.push('');
     errors.push('📍 如果已经配置了但检测不到，请确认：');
-    errors.push('   - EvoFlow: models.providers.*.apiKey');
+    errors.push('   - 电商运营终端: models.providers.*.apiKey');
     errors.push('   - Hermes: model.api_key');
     errors.push('   - Claude Code: ANTHROPIC_AUTH_TOKEN 环境变量');
   }

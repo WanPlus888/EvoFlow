@@ -679,7 +679,7 @@ export function relaxMarkdownLineBreaks(text) {
         // 单 `#` 后接 `/` 是裸路径行（#/account/...），这是 panel 跳转，**不**是标题。
         // 单 `#` 后接 ASCII 字母/数字**且**紧跟着是 CJK（无空格的混合 hashtag，
         // 如 `#ai新星计划`）也是活动标签，不是标题。纯英文 `#evoflow` 视为 hashtag；
-        // 标题只要 `# 标题` / `#标题` 紧接汉字的整段（`# EvoFlow…介绍`）仍按
+        // 标题只要 `# 标题` / `#标题` 紧接汉字的整段（`# 电商运营终端…介绍`）仍按
         // 下方逻辑升级为 h1，但 splitter 会按句读把它从 `介绍` 处切开。
         if (hashes.length === 1) {
           if (rest.startsWith('/')) return line

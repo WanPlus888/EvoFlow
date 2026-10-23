@@ -4322,7 +4322,7 @@ export function normalizeChatToolPayloadToEntries(payload) {
     output: output !== undefined ? output : undefined,
     status,
   }
-  // EvoFlow CUA：流式层结构化字段优先；否则从正文标记 / Screenshot banner 还原。
+  // 电商运营终端 CUA：流式层结构化字段优先；否则从正文标记 / Screenshot banner 还原。
   if (d.cua_display && typeof d.cua_display === 'object') {
     toolEntry.cua_display = d.cua_display
   } else {
@@ -5066,7 +5066,7 @@ export function messagesToDisplayRows(rawMessages) {
 }
 
 // ---------------------------------------------------------------------------
-// EvoFlow CUA display 标记（node_repl js 工具结果尾部）
+// 电商运营终端 CUA display 标记（node_repl js 工具结果尾部）
 //
 // 后端 plugins/node_repl_tool.py 在 Computer Use 结果末尾追加一行
 // `{evoflow-cua-display:{...}}` JSON 标记（目标应用身份 + 截图 URL + 状态）。

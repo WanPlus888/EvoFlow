@@ -42,7 +42,7 @@ export const DEFAULT_PLUGIN_MARKETPLACES: DefaultPluginMarketplace[] = [
 ];
 
 // 商店「公开」分段只有一个 ZCode 官方市场 id，内置与 CDN 不再拆分身份。
-// EvoFlow 官方插件市场与 ZCode 官方市场同层级：同样进入「公开」分段。
+// 电商运营终端 官方插件市场与 ZCode 官方市场同层级：同样进入「公开」分段。
 export const EVOFLOW_OFFICIAL_PLUGIN_MARKETPLACE_ID = "evoflow-plugins-official";
 export const PUBLIC_STORE_MARKETPLACE_IDS = [
   ZCODE_OFFICIAL_PLUGIN_MARKETPLACE_ID,

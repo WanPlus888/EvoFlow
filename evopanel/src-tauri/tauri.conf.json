@@ -55,7 +55,7 @@
     "copyright": "Copyright © 2024-2026 EvovexAI. All rights reserved.",
     "category": "DeveloperTool",
     "shortDescription": "电商运营终端 — AI 员工与电商生产编排工作台",
-    "longDescription": "电商运营终端：基于 EvoFlow（EvovexAI，PolyForm Noncommercial 授权）定制的智能体编排桌面工作台，内置 Tauri v2 面板。",
+    "longDescription": "电商运营终端：基于 电商运营终端（EvovexAI，PolyForm Noncommercial 授权）定制的智能体编排桌面工作台，内置 Tauri v2 面板。",
     "licenseFile": "windows/installer-license.txt",
     "resources": [
       "windows/install-data.ps1",

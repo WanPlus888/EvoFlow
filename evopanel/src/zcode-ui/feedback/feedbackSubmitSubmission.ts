@@ -19,7 +19,7 @@ import {
   type FeedbackSubmissionJob,
 } from "@/feedback/feedbackSubmissionJob.js";
 
-const FEEDBACK_ZCODE_AGENT_LABEL = "EvoFlow Agent";
+const FEEDBACK_ZCODE_AGENT_LABEL = "电商运营终端 Agent";
 
 export const DEFAULT_FEEDBACK_TYPE: FeedbackTicketType = "bug";
 export const DEFAULT_FEEDBACK_SEVERITY: FeedbackTicketSeverity = "P2-中";

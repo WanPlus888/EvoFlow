@@ -186,7 +186,7 @@ This report was compiled using:
 
 ---
 
-**Report Prepared By:** Github Deep Research by EvoFlow
+**Report Prepared By:** Github Deep Research by 电商运营终端
 **Date:** {REPORT_DATE}
 **Report Version:** 1.0
 **Status:** Complete

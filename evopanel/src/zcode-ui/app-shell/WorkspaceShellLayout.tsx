@@ -1509,7 +1509,7 @@ export const WorkspaceShellLayout = memo(function WorkspaceShellLayoutComponent(
 
   return (
     <DesktopWindowFrame
-      title={`EvoFlow / ${getPathLeaf(workspaceAbsPath)}`}
+      title={`电商运营终端 / ${getPathLeaf(workspaceAbsPath)}`}
       showHeader
       isDesktop={isDesktop}
       isMacDesktop={isMacDesktop}

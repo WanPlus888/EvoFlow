@@ -6,7 +6,7 @@ import { blog } from '../../lib/browser-unified-log.js'
 import type { PluginPickerItem } from './PluginPickerModal.js'
 
 /**
- * 聊天「+」快捷面板 — ZCode ChatPromptActionMenu 排版复刻（EvoFlow 品牌）：
+ * 聊天「+」快捷面板 — ZCode ChatPromptActionMenu 排版复刻（电商运营终端 品牌）：
  *   「添加」节：附件 / 图片；
  *   「插件」节：小图标 + 名称 + 内联描述的窄行（即点即存）；
  *   「能力」节：技能 / 目标 / 员工 / 语音播报 / 思考与记忆等；
