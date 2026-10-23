@@ -50,7 +50,7 @@
   },
   "bundle": {
     "active": true,
-    "createUpdaterArtifacts": "v1Compatible",
+    "createUpdaterArtifacts": false,
     "publisher": "EvovexAI",
     "copyright": "Copyright © 2024-2026 EvovexAI. All rights reserved.",
     "category": "DeveloperTool",
