@@ -44,6 +44,7 @@ import { isTauri } from '../../lib/panel-login.js'
 import { loadSkillCatalog, subscribeSkillCatalog } from '../../lib/skill-catalog.js'
 import { ObjectUrlImg } from './ObjectUrlImg.js'
 import { DropdownSelect } from './DropdownSelect.js'
+import { OpsOrderSummary } from './OpsOrderSummary.js'
 import { ImagePreviewModal, type ImagePreviewItem } from './ImagePreviewModal.js'
 import { isImagePathLike, resolveChatImageSrc } from '../../lib/chat-image-src.js'
 import {
@@ -1546,6 +1547,8 @@ export function EvoFlowHomeDashboard({ onPrompt, workspaceLabel = '', workspaceP
             </p>
           </section>
         ) : null}
+
+        {homeTab === 'workbench' && <OpsOrderSummary />}
 
         {homeTab === 'workbench' && prefs.modules.kpis ? (
           <section className="evo-home-kpi-grid">

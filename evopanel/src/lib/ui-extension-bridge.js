@@ -95,6 +95,25 @@ export function attachUiExtensionBridge({ iframe, extensionId, manifest }) {
         reply(event, data.requestId, true, { opened: targetId, entry: entry || null })
         return
       }
+      // fork 扩展：页面回宿主导航（电商运营终端·工单台「← 驾驶舱」用）
+      if (method === 'shell.home') {
+        requirePerm(perms, 'embed')
+        navigate('/chat')
+        reply(event, data.requestId, true, { ok: true, route: '/chat' })
+        return
+      }
+      if (method === 'shell.navigate') {
+        requirePerm(perms, 'embed')
+        const allow = ['/chat', '/tasks', '/proactive', '/apps', '/expert',
+                       '/cron', '/knowledge', '/extensions', '/assets', '/settings']
+        const p = String(params.path || '').split('?')[0]
+        if (!allow.some(a => p === a || p.startsWith(a + '/'))) {
+          throw new Error('不允许导航到该路径: ' + p)
+        }
+        navigate(p)
+        reply(event, data.requestId, true, { ok: true, route: p })
+        return
+      }
       reply(event, data.requestId, false, null, `未知 method: ${method}`)
     } catch (e) {
       reply(event, data.requestId, false, null, String(e?.message || e))

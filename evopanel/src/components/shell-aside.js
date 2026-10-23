@@ -22,6 +22,7 @@ const ICONS = {
   house:
     '<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
   listTodo: '<path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/><path d="m3 17 2 2 4-4"/><rect width="6" height="6" x="3" y="4" rx="1"/>',
+  clipboardList: '<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/>',
   layoutGrid: '<rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/>',
   users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.128a4 4 0 0 1 0 7.744"/>',
   bot: '<path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/>',
@@ -520,21 +521,25 @@ export function initShellAside(el) {
       </button>
     </div>
     <nav class="react-chat-aside-primary" aria-label="产品导航">
-      <button type="button" class="react-chat-aside-nav-item" data-shell-nav="/chat" data-shell-home="1" id="shell-btn-new-task" title="工作台" aria-label="工作台">
+      <button type="button" class="react-chat-aside-nav-item" data-shell-nav="/chat" data-shell-home="1" id="shell-btn-new-task" title="驾驶舱（今日总览）" aria-label="驾驶舱">
         <span class="react-chat-aside-nav-ic" aria-hidden>${_lucide('house')}</span>
-        <span class="react-chat-aside-nav-label">工作台</span>
+        <span class="react-chat-aside-nav-label">驾驶舱</span>
+      </button>
+      <button type="button" class="react-chat-aside-nav-item" data-shell-nav="/extensions/ecom-ops-board" title="生产工单（派单/验收）" aria-label="生产工单">
+        <span class="react-chat-aside-nav-ic" aria-hidden>${_lucide('clipboardList')}</span>
+        <span class="react-chat-aside-nav-label">生产工单</span>
       </button>
       <button type="button" class="react-chat-aside-nav-item" data-shell-nav="/tasks" data-premium-nav="tasks" title="任务中心">
         <span class="react-chat-aside-nav-ic" aria-hidden>${_lucide('listTodo')}</span>
         <span class="react-chat-aside-nav-label">任务中心</span>
       </button>
+      <button type="button" class="react-chat-aside-nav-item" data-shell-nav="/proactive" data-premium-nav="proactive" title="数字员工">
+        <span class="react-chat-aside-nav-ic" aria-hidden>${_lucide('users')}</span>
+        <span class="react-chat-aside-nav-label">数字员工</span>
+      </button>
       <button type="button" class="react-chat-aside-nav-item" data-shell-nav="/apps" data-premium-nav="apps" title="工作流">
         <span class="react-chat-aside-nav-ic" aria-hidden>${_lucide('layoutGrid')}</span>
         <span class="react-chat-aside-nav-label">工作流</span>
-      </button>
-      <button type="button" class="react-chat-aside-nav-item" data-shell-nav="/proactive" data-premium-nav="proactive" title="员工">
-        <span class="react-chat-aside-nav-ic" aria-hidden>${_lucide('users')}</span>
-        <span class="react-chat-aside-nav-label">员工</span>
       </button>
       <div class="shell-aside-nav-more" data-shell-nav-more>
         <button type="button" class="shell-aside-nav-more-toggle" data-shell-nav-more-toggle title="更多" aria-expanded="false" aria-controls="shell-nav-more-body">
