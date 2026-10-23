@@ -1,9 +1,9 @@
 ---
 name: evoflow-admin
-description: EvoFlow 产品自介绍 + 系统治理 + 资产库契约 + 对话创建预设角色。用户问「EvoFlow 是什么 / 你能做什么 / 怎么用」时用白话介绍（细则见 references/product-intro.md）。新建预设角色、子智能体、人设、agent_code、SOUL、勾选工具/技能、或说「按文档快速创建角色」「帮我设计一个角色配置」时，按 references/preset-role.md 强制盘点后再 platform / evoflow agents 落盘（原 preset-role-assistant 已并入）。长期记忆/经验/偏好/craft 走内置 assets 工具（契约见 references/assets-contract.md，布局见 assets-layout.md）。日常行政优先 platform（catalog→confirm→执行）；复杂/脚本化治理再 terminal + evoflow CLI。覆盖模型、联网搜索、技能、Agent应用、插件、资源包、IM渠道、Agent、员工、工作流、事项、协作任务、审批、资产、知识库、MCP、评测、会话、自动化、画像、日志诊断、系统验证。description 够用勿整篇读 SKILL。仅挂主 Agent（main）；外部 Agent 用 evoflow-admin-external。
+description: 电商运营终端 产品自介绍 + 系统治理 + 资产库契约 + 对话创建预设角色。用户问「电商运营终端 是什么 / 你能做什么 / 怎么用」时用白话介绍（细则见 references/product-intro.md）。新建预设角色、子智能体、人设、agent_code、SOUL、勾选工具/技能、或说「按文档快速创建角色」「帮我设计一个角色配置」时，按 references/preset-role.md 强制盘点后再 platform / evoflow agents 落盘（原 preset-role-assistant 已并入）。长期记忆/经验/偏好/craft 走内置 assets 工具（契约见 references/assets-contract.md，布局见 assets-layout.md）。日常行政优先 platform（catalog→confirm→执行）；复杂/脚本化治理再 terminal + evoflow CLI。覆盖模型、联网搜索、技能、Agent应用、插件、资源包、IM渠道、Agent、员工、工作流、事项、协作任务、审批、资产、知识库、MCP、评测、会话、自动化、画像、日志诊断、系统验证。description 够用勿整篇读 SKILL。仅挂主 Agent（main）；外部 Agent 用 evoflow-admin-external。
 ---
 
-# EvoFlow Admin（自介绍 + 治理 + 资产）
+# 电商运营终端 Admin（自介绍 + 治理 + 资产）
 
 ## 何时用哪一段
 
@@ -17,7 +17,7 @@ description: EvoFlow 产品自介绍 + 系统治理 + 资产库契约 + 对话�
 
 已退役：分散工具 `create_agent`、`experience_*`、`memory_remember` / `remember`；旧 CLI `evoflow experience` / `evoflow memory`；旧 platform `memory.*` / `experience.*`；独立技能 **`evoflow-assets`** / **`evoflow-intro`** / **`preset-role-assistant`**（已并入本技能；建角色流程见 [`references/preset-role.md`](references/preset-role.md)）。长期记忆与经验统一走 **`assets` 工具**（面板 `#/assets`）。
 
-**runtime / Work Body / 无 EvoFlow 会话的 Agent**：安装独立发行包 **`evoflow-admin-external`**（GitHub Releases / 官网下载，或本地用 `package_release.py` 打出 zip），不要依赖本技能里的 `platform` / `terminal` 工具叙述，也不要用软链接代替整包拷贝。
+**runtime / Work Body / 无 电商运营终端 会话的 Agent**：安装独立发行包 **`evoflow-admin-external`**（GitHub Releases / 官网下载，或本地用 `package_release.py` 打出 zip），不要依赖本技能里的 `platform` / `terminal` 工具叙述，也不要用软链接代替整包拷贝。
 
 ## Admin CLI
 
@@ -551,7 +551,7 @@ evoflow eval show <run_id>
 
 ## Product wording
 
-- 用户说「你是谁 / EvoFlow 是什么 / 能做什么」→ 白话自介绍（[`references/product-intro.md`](references/product-intro.md)）；勿甩 CLI/JSON。
+- 用户说「你是谁 / 电商运营终端 是什么 / 能做什么」→ 白话自介绍（[`references/product-intro.md`](references/product-intro.md)）；勿甩 CLI/JSON。
 - 用户说「记住 / 记偏好 / 沉淀经验 / 审计资产」→ **`assets`** + [`assets-contract.md`](references/assets-contract.md)；勿再提已退役的 `evoflow-assets` 技能名。
 - 用户说「角色 / 新建助手 / 设计角色配置」→ 按 [`references/preset-role.md`](references/preset-role.md) 盘点后再 `agents create` / `platform` 落盘；勿再提已退役的 `preset-role-assistant` 技能名；不是单轮扮演。
 - 用户说「安排岗位 / 雇员工 / 改职责 KPI」→ `agents`（如需）+ `employees hire|update`。

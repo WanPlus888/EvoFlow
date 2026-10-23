@@ -58,8 +58,8 @@ export function mountAboutInto(container) {
   container.innerHTML = `
     <div class="about-page">
       <div class="about-header">
-        <img src="/images/logo.png" alt="EvoFlow" class="about-logo" width="64" height="64" />
-        <h2 class="about-name">EvoFlow</h2>
+        <img src="/images/logo.png" alt="电商运营终端" class="about-logo" width="64" height="64" />
+        <h2 class="about-name">电商运营终端</h2>
         <p class="about-version">v${APP_VERSION}</p>
       </div>
 

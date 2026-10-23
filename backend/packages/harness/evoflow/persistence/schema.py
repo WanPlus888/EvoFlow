@@ -2108,6 +2108,11 @@ _LEGACY_COLUMN_BACKFILL: dict[str, tuple[tuple[str, str], ...]] = {
         ("model", "TEXT"),
         ("result_url", "TEXT"),
     ),
+    # fork 补丁：v1.1.4 代码使用 pinned_version 但基线 DDL 与补列清单均缺此列，
+    # 全新数据库铸造令牌必崩（sqlite3.OperationalError: no column named pinned_version）。
+    "evoflow_api_tokens": (
+        ("pinned_version", "INTEGER"),
+    ),
 }
 
 
