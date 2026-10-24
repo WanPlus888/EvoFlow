@@ -95,6 +95,34 @@ export function attachUiExtensionBridge({ iframe, extensionId, manifest }) {
         reply(event, data.requestId, true, { opened: targetId, entry: entry || null })
         return
       }
+      // fork 扩展：页面 KV 保险箱（第一方持久存储；工单台登录态免重复登录用）
+      if (method === 'vault.set') {
+        requirePerm(perms, 'embed')
+        const key = String(params.key || '').replace(/[^a-zA-Z0-9_.-]/g, '').slice(0, 64)
+        const value = String(params.value ?? '')
+        if (!key) throw new Error('key 必填')
+        if (value.length > 4096) throw new Error('value 超限（4KB）')
+        try {
+          window.localStorage.setItem(
+            `evoflow_ext_vault:${extensionId}:${key}`, value)
+        } catch {
+          throw new Error('宿主存储不可用')
+        }
+        reply(event, data.requestId, true, { ok: true })
+        return
+      }
+      if (method === 'vault.get') {
+        requirePerm(perms, 'embed')
+        const key = String(params.key || '').replace(/[^a-zA-Z0-9_.-]/g, '').slice(0, 64)
+        if (!key) throw new Error('key 必填')
+        let value = ''
+        try {
+          value = window.localStorage.getItem(
+            `evoflow_ext_vault:${extensionId}:${key}`) ?? ''
+        } catch { /* 存储不可用按空处理 */ }
+        reply(event, data.requestId, true, { value })
+        return
+      }
       // fork 扩展：页面回宿主导航（电商运营终端·工单台「← 驾驶舱」用）
       if (method === 'shell.home') {
         requirePerm(perms, 'embed')
