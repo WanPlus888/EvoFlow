@@ -1661,6 +1661,8 @@ export function createChatWsOnEventHandler(ctx: ChatWsOnEventCtx) {
         const aguiEvent = (payload as { aguiEvent?: AGUIEvent }).aguiEvent
         if (!aguiEvent) return
 
+        // fork 注：1.1.5 曾用 if(false) 整闸禁用；官方 1.3.7 已用
+        // isV4DisplayAuthoritative 对齐渲染器启用条件，故采官方闸门，不再 false 短路。
         // V4 双轨闸门：仅当 V4 时间线已真正接管（有快照）时，才丢掉 TEXT_* 热路径。
         // store=error / 永 connecting 时若仍闸门，模型报错正文进不了老面板，用户只看到加载中。
         // 业务事件（TOOL_CALL_*、RUN_*、平台）始终放行。
