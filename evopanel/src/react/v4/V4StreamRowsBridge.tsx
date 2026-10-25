@@ -49,6 +49,15 @@ export type V4BridgePhase =
   /** 投影 store 已 error 且无快照：V4 失败态（不回落老面板；闸门放行 AG-UI 正文）。 */
   | "failed";
 
+/**
+ * The legacy pane must remain visible until V4 has a real snapshot. A transport
+ * that is merely connecting (or failed before its first frame) is not a valid
+ * handoff point; hiding legacy rows here creates a blank conversation.
+ */
+export function shouldRenderLegacyRows(phase: V4BridgePhase, isHomeSurface: boolean): boolean {
+  return phase !== "ready" || isHomeSurface;
+}
+
 const NOT_READY: StoreState | null = null;
 
 /** 连接级单例数据层（同页所有会话共享一条 V4 SSE；keep-warm 由数据层管理）。 */

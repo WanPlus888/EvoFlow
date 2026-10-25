@@ -12,6 +12,7 @@ import {
   conversationRowSchema,
 } from "@zcode/shared/zcode-protocol-v4";
 import { parseV4WireSseBlocks } from "../src/react/v4/v4-wire-sse-parse.js";
+import { shouldRenderLegacyRows } from "../src/react/v4/V4StreamRowsBridge";
 
 type Json = Record<string, unknown>;
 type ZodIssue = {
@@ -172,6 +173,22 @@ describe("minimal snapshot generator", () => {
     console.log("MINIMAL_ROWS_JSON_START");
     console.log(JSON.stringify(rows, null, 1));
     console.log("MINIMAL_ROWS_JSON_END");
+  });
+});
+
+describe("V4 legacy rendering fallback", () => {
+  it("keeps legacy rows while V4 is connecting or disabled", () => {
+    expect(shouldRenderLegacyRows("connecting", false)).toBe(true);
+    expect(shouldRenderLegacyRows("disabled", false)).toBe(true);
+    expect(shouldRenderLegacyRows("no-thread", false)).toBe(true);
+  });
+
+  it("keeps legacy rows on home surface", () => {
+    expect(shouldRenderLegacyRows("ready", true)).toBe(true);
+  });
+
+  it("hands off only after a real V4 snapshot is ready", () => {
+    expect(shouldRenderLegacyRows("ready", false)).toBe(false);
   });
 });
 
