@@ -180,6 +180,7 @@ class DeptGroupRunReceiptTest(unittest.TestCase):
         self.assertIn("已完成", rows[0]["content"] or rows[0]["blob"].get("content") or "")
         self.assertIn("周报生成器", rows[0]["content"] or rows[0]["blob"].get("content") or "")
         self.assertIn("自动回执", rows[0]["content"] or rows[0]["blob"].get("content") or "")
+        self.assertIn("非工作台扣费派单", rows[0]["content"] or rows[0]["blob"].get("content") or "")
 
     def test_terminal_run_posts_receipt_via_task_reverse_lookup(self) -> None:
         from evoflow.persistence.app_repositories import save_run, update_run_status
@@ -271,11 +272,13 @@ class DeptGroupRunReceiptTest(unittest.TestCase):
             block = build_dept_group_im_block(dept_name="研发群", steward=steward, roster=["开发A"])
             self.assertIn("回合结束前必须交代结果", block)
             self.assertIn("自动回执", block)
+            self.assertIn("不是工作台扣费派单", block)
+            self.assertIn("draft_workbench_order", block)
         steward_block = build_dept_group_im_block(dept_name="研发群", steward=True, roster=["开发A"])
         member_block = build_dept_group_im_block(dept_name="研发群", steward=False, roster=["开发A"])
-        # 编号连续：管家块 1-6、成员块 1-6
+        # 编号连续：管家块 1-7、成员块 1-7（含工作台扣费边界）
         for block in (steward_block, member_block):
-            for i in range(1, 7):
+            for i in range(1, 8):
                 self.assertIn(f"{i}. ", block)
 
     # ── 协作任务终态回执（save_task_bundle 差分钩子） ─────────────────────────
@@ -325,6 +328,7 @@ class DeptGroupRunReceiptTest(unittest.TestCase):
         self.assertIn("已完成", rows[0]["content"])
         self.assertIn("周报整理", rows[0]["content"])
         self.assertIn("自动回执", rows[0]["content"])
+        self.assertIn("非工作台扣费派单", rows[0]["content"])
         # 同终态重复保存（reconciler 反复写）不重复落群
         self._save_bundle("mt-1", "周报整理", "completed")
         deadline = time.monotonic() + 2.0

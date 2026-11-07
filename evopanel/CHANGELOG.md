@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.4.2] - 2026-11-07
+
+**P1 第二刀：部门群派工条 + 自动回执**（在 1.4.1 能力边界之上验收官方 1.3.2 / 1.3.7 能力）。
+
+### 本版要点
+
+- **派工条**：群内 @ 点名气泡下展示「排队中 / 回答中 / 已回 / 失败」（叫醒队列 × 审计回灌 × 后续回复证据）
+- **自动回执**：后台 run / 协作任务终态以员工名义回群；气泡标「自动回执」徽标；开着群时轻量轮询合并新回执
+- **边界写死**：回执文案与提示词明确「部门群任务结果 ≠ 工作台扣费派单」；`draft_workbench_order` 仍只出草稿
+- **驾驶舱口径**：生产工单卡注明与部门群派工条/回执不同源，避免重复误导
+
+### 明确未做
+
+- 节点级工作流画布大改（仅摸底，下一刀）
+- Windows 包；不 push；不自动覆盖 /Applications；updater 仍关
+
+详见 `tools/branding/P1-dept-group-dispatch.md`。
+
 ## [1.4.1] - 2026-11-07
 
 **P1 第一刀：员工能力边界协同**（路径 C 地基之上）。
@@ -17,7 +35,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### 明确未做
 
-- 部门群派工条 / 节点级工作流画布（下一刀）
+- 节点级工作流画布（下一刀；派工条/回执见 1.4.2）
 - Windows 包；不 push；不自动覆盖 /Applications
 
 详见 `tools/branding/P1-capability-layering.md`。

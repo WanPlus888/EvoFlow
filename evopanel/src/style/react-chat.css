@@ -1708,6 +1708,27 @@ html.dark .dept-im__avatar--self {
   color: #8b9bb0;
 }
 
+.dept-im__head-receipt {
+  flex-shrink: 0;
+  font-size: 10px;
+  line-height: 1.2;
+  padding: 1px 5px;
+  border-radius: 4px;
+  color: #3d7a52;
+  background: color-mix(in srgb, #3d9a5f 14%, transparent);
+  font-weight: 500;
+}
+
+.dept-im__bubble.is-auto-receipt {
+  border-left: 2px solid color-mix(in srgb, #3d9a5f 55%, transparent);
+}
+
+html[data-theme='dark'] .dept-im__head-receipt,
+html.dark .dept-im__head-receipt {
+  color: #6fbf88;
+  background: color-mix(in srgb, #3d9a5f 22%, transparent);
+}
+
 /* 微信居中时间 / 系统提示 */
 .dept-im__time-sep,
 .dept-im__sys-sep {

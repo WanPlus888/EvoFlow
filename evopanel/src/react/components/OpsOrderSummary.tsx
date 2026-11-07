@@ -48,7 +48,12 @@ export function OpsOrderSummary() {
   return (
     <section className="evo-home-card evo-home-card--ops">
       <div className="evo-home-card__head">
-        <h2 className="evo-home-card__title">生产工单</h2>
+        <div>
+          <h2 className="evo-home-card__title">生产工单</h2>
+          <p className="evo-home-card__hint" style={{ margin: '4px 0 0', fontSize: 12, opacity: 0.72 }}>
+            工作台扣费派单口径；部门群「派工条 / 自动回执」只报告群内任务结果，不扣费。
+          </p>
+        </div>
         <button type="button" className="evo-home-btn evo-home-btn--chip" onClick={go}>
           去生产工单 →
         </button>

@@ -4,6 +4,7 @@ import {
   STREAMING_STALE_MS,
   buildDeptGroupContentJson,
   mapApiRowToDeptGroupMsg,
+  mergeRemoteDeptGroupMessages,
   migrateLocalDeptChatIfNeeded,
   staleStreamingToError,
   workSessionKeyForSpeaker,
@@ -92,6 +93,77 @@ describe('dept-group-transcript mapping', () => {
     })
     expect(msg?.kind).toBe('system')
     expect(msg?.text).toBe('已流转')
+  })
+
+
+  it('maps auto_receipt meta and dept-receipt- id', () => {
+    const tagged = mapApiRowToDeptGroupMsg({
+      message_id: 'bubble-r1',
+      role: 'assistant',
+      created_at_ms: 1700000001000,
+      content_json: {
+        content: '「周报」已完成（自动回执·部门群任务结果，非工作台扣费派单）',
+        dept_group: {
+          msg_kind: 'agent',
+          speaker_code: 'dev-a',
+          speaker_name: '全栈',
+          stream_state: 'final',
+          auto_receipt: true,
+        },
+      },
+    })
+    expect(tagged?.autoReceipt).toBe(true)
+
+    const byId = mapApiRowToDeptGroupMsg({
+      message_id: 'dept-receipt-run-9',
+      role: 'assistant',
+      created_at_ms: 1700000002000,
+      content_json: {
+        content: '自动回执',
+        dept_group: { msg_kind: 'agent', speaker_code: 'dev-a', stream_state: 'final' },
+      },
+    })
+    expect(byId?.autoReceipt).toBe(true)
+  })
+
+  it('merges remote receipts without clobbering local streaming', () => {
+    const local = [
+      {
+        id: 'local-stream',
+        kind: 'agent',
+        text: '半',
+        ts: 10,
+        streaming: true,
+        agentCode: 'dev-a',
+      },
+      { id: 'user-1', kind: 'user', text: '你好', ts: 1 },
+    ]
+    const remote = [
+      { id: 'user-1', kind: 'user', text: '你好', ts: 1 },
+      {
+        id: 'local-stream',
+        kind: 'agent',
+        text: '',
+        ts: 10,
+        streaming: true,
+        agentCode: 'dev-a',
+      },
+      {
+        id: 'dept-receipt-run-1',
+        kind: 'agent',
+        text: '「任务」已完成（自动回执·部门群任务结果，非工作台扣费派单）',
+        ts: 20,
+        autoReceipt: true,
+        agentCode: 'dev-a',
+        agentName: '全栈',
+      },
+      { id: 'empty-stream', kind: 'agent', text: '', ts: 15, streaming: true },
+    ]
+    const { next, added } = mergeRemoteDeptGroupMessages(local, remote)
+    expect(added).toBe(1)
+    expect(next.map((m) => m.id)).toEqual(['user-1', 'local-stream', 'dept-receipt-run-1'])
+    expect(next.find((m) => m.id === 'local-stream')?.text).toBe('半')
+    expect(next.find((m) => m.id === 'dept-receipt-run-1')?.autoReceipt).toBe(true)
   })
 
   it('marks stale streaming as error', () => {
@@ -217,6 +289,6 @@ describe('dept-group-transcript migrate', () => {
     expect(gatewayProxy).not.toHaveBeenCalled()
     expect(rows).toHaveLength(1)
     expect(rows[0].text).toBe('from-db')
-    expect(localStorage.getItem(`${DEPT_CHAT_LS_PREFIX}${deptId}`)).toBeTruthy()
+    expect(localStorage.getItem(`${DEPT_CHAT_LS_PREFIX}${deptId}`)).toBeNull()
   })
 })

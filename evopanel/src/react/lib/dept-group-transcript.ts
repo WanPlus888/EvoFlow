@@ -25,6 +25,8 @@ export type DeptGroupTimelineMsg = {
   error?: boolean
   workSessionKey?: string
   wakeJobId?: string
+  /** 后台 run/协作任务终态自动回执（非本人输入；≠ 工作台扣费派单） */
+  autoReceipt?: boolean
 }
 
 export type DeptGroupMeta = {
@@ -38,6 +40,7 @@ export type DeptGroupMeta = {
   stream_state?: DeptGroupStreamState
   from_agent_name?: string
   mentions?: string[]
+  auto_receipt?: boolean
 }
 
 function lsKey(deptId: string): string {
@@ -62,6 +65,7 @@ export function buildDeptGroupContentJson(
     stream_state: streamState,
     from_agent_name: msg.fromAgentName,
     mentions: msg.mentions,
+    auto_receipt: msg.autoReceipt ? true : undefined,
   }
   return {
     content: String(msg.text || ''),
@@ -119,6 +123,14 @@ export function mapApiRowToDeptGroupMsg(row: any): DeptGroupTimelineMsg | null {
     (row.timestamp ? Date.parse(String(row.timestamp)) : 0) ||
     (row.created_at ? Date.parse(String(row.created_at)) : 0) ||
     Date.now()
+  const autoReceiptRaw = dg.auto_receipt ?? dg.autoReceipt
+  const autoReceipt =
+    autoReceiptRaw === true ||
+    autoReceiptRaw === 1 ||
+    autoReceiptRaw === '1' ||
+    autoReceiptRaw === 'true' ||
+    autoReceiptRaw === 'True' ||
+    String(mid || '').startsWith('dept-receipt-')
   return {
     id: mid || `row-${ts}`,
     kind,
@@ -138,6 +150,7 @@ export function mapApiRowToDeptGroupMsg(row: any): DeptGroupTimelineMsg | null {
     error,
     workSessionKey: String(dg.work_session_key || dg.workSessionKey || '').trim() || undefined,
     wakeJobId: String(dg.wake_job_id || dg.wakeJobId || '').trim() || undefined,
+    autoReceipt: autoReceipt || undefined,
   }
 }
 
@@ -370,6 +383,38 @@ export async function migrateLocalDeptChatIfNeeded(opts: {
   })
   if (after.length) clearLocalDeptChatBackup(deptId)
   return after
+}
+
+/**
+ * 把后端新落盘的群消息（含自动回执）并入本地时间线。
+ * - 只追加本地没有的 id；不覆盖本地流式占位
+ * - 跳过远程空 streaming 行，避免抢本地打字机
+ */
+export function mergeRemoteDeptGroupMessages(
+  local: DeptGroupTimelineMsg[],
+  remote: DeptGroupTimelineMsg[],
+): { next: DeptGroupTimelineMsg[]; added: number } {
+  const byId = new Map<string, DeptGroupTimelineMsg>()
+  for (const m of local || []) {
+    const id = String(m?.id || '').trim()
+    if (!id) continue
+    byId.set(id, m)
+  }
+  let added = 0
+  for (const r of remote || []) {
+    const id = String(r?.id || '').trim()
+    if (!id) continue
+    if (byId.has(id)) continue
+    if (r.streaming && !String(r.text || '').trim()) continue
+    byId.set(id, r)
+    added += 1
+  }
+  const next = [...byId.values()].sort((a, b) => {
+    const dt = Number(a.ts || 0) - Number(b.ts || 0)
+    if (dt !== 0) return dt
+    return String(a.id).localeCompare(String(b.id))
+  })
+  return { next, added }
 }
 
 export function workSessionKeyForSpeaker(deptId: string, agentCode: string): string {

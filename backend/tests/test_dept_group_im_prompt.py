@@ -50,6 +50,9 @@ def test_build_dept_group_im_block_mentions_at_rule():
     assert "旧任务" in block or "站立摘要" in block
     # 提示词自身也不要用 Markdown 标题井号
     assert not any(line.lstrip().startswith("# ") for line in block.splitlines())
+    assert "不是工作台扣费派单" in block
+    assert "draft_workbench_order" in block
+    assert "不派单不扣费" in block
 
 
 def test_build_dept_group_im_steward_block():
@@ -71,6 +74,8 @@ def test_build_dept_group_im_steward_block():
     assert "【群近期】" in block
     assert "agent_code" in block or "内部编码" in block
     assert "被点名" not in block
+    assert "不是工作台扣费派单" in block
+    assert "draft_workbench_order" in block
     assert not any(line.lstrip().startswith("# ") for line in block.splitlines())
 
 

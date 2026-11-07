@@ -91,7 +91,7 @@ def build_dept_group_run_receipt(run: dict[str, Any], status: str) -> str:
     app_name = str(run.get("app_name") or run.get("app_id") or "任务").strip()
     summary = _excerpt(run.get("result_summary"))
     err = _excerpt(run.get("error"))
-    head = f"「{app_name}」{label}（自动回执，后台任务，非本人输入）"
+    head = f"「{app_name}」{label}（自动回执·部门群任务结果，非工作台扣费派单）"
     if status == "failed" and err:
         return f"{head}：{err}"
     if summary:
@@ -273,7 +273,7 @@ def maybe_push_dept_group_run_receipt_async(
 
 def build_dept_group_task_receipt(name: str, status: str, error_text: str = "") -> str:
     label = _STATUS_LABEL.get(str(status or "").strip().lower(), status or "结束")
-    head = f"「{str(name or '').strip() or '协作任务'}」{label}（自动回执，非本人输入）"
+    head = f"「{str(name or '').strip() or '协作任务'}」{label}（自动回执·部门群任务结果，非工作台扣费派单）"
     err = _excerpt(error_text)
     if str(status or "").strip().lower() == "failed" and err:
         return f"{head}：{err}"

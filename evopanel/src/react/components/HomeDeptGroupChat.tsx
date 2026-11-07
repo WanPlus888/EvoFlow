@@ -67,6 +67,8 @@ import {
 } from '../lib/dept-group-live.js'
 import {
   finalizeDeptGroupMessage,
+  loadDeptGroupMessages,
+  mergeRemoteDeptGroupMessages,
   migrateLocalDeptChatIfNeeded,
   upsertDeptGroupMessage,
   workSessionKeyForSpeaker,
@@ -94,6 +96,8 @@ export type GroupChatMsg = {
   error?: boolean
   workSessionKey?: string
   wakeJobId?: string
+  /** 后台终态自动回执（报告任务结果 ≠ 工作台扣费派单） */
+  autoReceipt?: boolean
 }
 
 type ThreadLine = {
@@ -562,6 +566,38 @@ export function HomeDeptGroupChat({
     }
     // 只跟部门 id：name 刷新不得清空时间线 / 打断点名
   }, [dept.id])
+
+  // 轻量轮询：后端自动回执异步落库后，开着群也能看到（不覆盖本地流式）
+  useEffect(() => {
+    const deptId = dept.id
+    const deptName = dept.name
+    let cancelled = false
+    const tick = () => {
+      if (cancelled || !aliveRef.current) return
+      void loadDeptGroupMessages(deptId, { deptName, finalizeStale: false })
+        .then((remote) => {
+          if (cancelled || !aliveRef.current) return
+          setMsgs((prev) => {
+            const { next, added } = mergeRemoteDeptGroupMessages(
+              prev as DeptGroupTimelineMsg[],
+              remote,
+            )
+            return added ? (next as GroupChatMsg[]) : prev
+          })
+        })
+        .catch(() => {
+          /* 轮询失败静默 */
+        })
+    }
+    const timer = window.setInterval(tick, 5000)
+    // 首轮稍晚一点，避开刚打开时的历史回填
+    const first = window.setTimeout(tick, 2500)
+    return () => {
+      cancelled = true
+      window.clearInterval(timer)
+      window.clearTimeout(first)
+    }
+  }, [dept.id, dept.name])
 
   useEffect(() => {
     const el = listRef.current
@@ -1556,13 +1592,21 @@ export function HomeDeptGroupChat({
                             {msg.streaming ? (
                               <span className="dept-im__head-state">回复中</span>
                             ) : null}
+                            {msg.autoReceipt && !msg.streaming ? (
+                              <span
+                                className="dept-im__head-receipt"
+                                title="部门群任务结果回执，不是工作台扣费派单"
+                              >
+                                自动回执
+                              </span>
+                            ) : null}
                           </div>
                         ) : null}
                         <button
                           type="button"
                           className={`dept-im__bubble dept-im__bubble--${msg.kind}${
                             clickable ? ' is-clickable' : ''
-                          }`}
+                          }${msg.autoReceipt ? ' is-auto-receipt' : ''}`}
                           onClick={() => onClickMsg(msg)}
                           disabled={!clickable}
                           aria-label={
@@ -1618,6 +1662,7 @@ export function HomeDeptGroupChat({
                         <span className="evo-home-cmd__gc-msg-who">
                           {who}
                           {msg.streaming ? ' · 回复中' : ''}
+                          {msg.autoReceipt && !msg.streaming ? ' · 自动回执' : ''}
                         </span>
                       </div>
                     )}
