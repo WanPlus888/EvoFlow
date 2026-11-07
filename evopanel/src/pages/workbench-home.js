@@ -31,7 +31,7 @@ function registerOpsBrainListener(frame) {
     if (!data || typeof data !== 'object') return
     if (data.type !== 'evoflow-ops-brain' && data.type !== 'evopanel-ops-brain') return
     // 切到运营壳：路由离开 workbench-home → setWorkbenchShellMode(false)
-    // 1.4.8：打切入标记，chat-return-bar 据此 toast 一次「可点『回工作台』返回」
+    // 1.4.9：打切入标记，chat-back-hint 据此 toast 一次「点左侧『回工作台』返回」
     try {
       sessionStorage.setItem('ef-from-ops-brain', '1')
     } catch {

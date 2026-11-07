@@ -650,12 +650,12 @@ async function boot() {
       console.warn('[boot] license status unavailable', e)
     }
     initShellAside(document.getElementById('app-shell-aside'))
-      // 1.4.8 回工作台：#/chat 顶上薄条（显性回程 + ops-brain 一次引导）
+      // 1.4.9 回工作台去重：顶栏薄条已删（回程=侧栏置顶品牌色）；仅留一次侧栏引导 toast
       try {
-        const { initChatReturnBar } = await import('./components/chat-return-bar.js')
-        initChatReturnBar()
+        const { initChatBackHint } = await import('./components/chat-back-hint.js')
+        initChatBackHint()
       } catch (e) {
-        console.warn('[boot] initChatReturnBar failed', e)
+        console.warn('[boot] initChatBackHint failed', e)
       }
       // 窄屏底部导航（宽屏不显示）
       try {

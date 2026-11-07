@@ -522,6 +522,11 @@ export function initShellAside(el) {
       </button>
     </div>
     <nav class="react-chat-aside-primary" aria-label="产品导航">
+      <button type="button" class="react-chat-aside-nav-item shell-nav-back-workbench" data-shell-nav="/workbench-home" data-testid="nav-workbench-home" title="回工作台首页（/workbench-home，嵌电商图片工作台）" aria-label="回工作台">
+        <span class="react-chat-aside-nav-ic" aria-hidden>${_lucide('image')}</span>
+        <span class="react-chat-aside-nav-label">回工作台</span>
+      </button>
+      <div class="shell-aside-nav-divider" aria-hidden="true"></div>
       <button type="button" class="react-chat-aside-nav-item" data-shell-nav="/chat" data-shell-home="1" id="shell-btn-new-task" title="驾驶舱（今日总览）" aria-label="驾驶舱">
         <span class="react-chat-aside-nav-ic" aria-hidden>${_lucide('house')}</span>
         <span class="react-chat-aside-nav-label">驾驶舱</span>
@@ -529,10 +534,6 @@ export function initShellAside(el) {
       <button type="button" class="react-chat-aside-nav-item" data-shell-nav="/extensions/ecom-ops-board" title="生产工单（派单/验收）" aria-label="生产工单">
         <span class="react-chat-aside-nav-ic" aria-hidden>${_lucide('clipboardList')}</span>
         <span class="react-chat-aside-nav-label">生产工单</span>
-      </button>
-      <button type="button" class="react-chat-aside-nav-item" data-shell-nav="/workbench-home" data-testid="nav-workbench-home" title="回工作台首页（/workbench-home，嵌电商图片工作台）" aria-label="回工作台">
-        <span class="react-chat-aside-nav-ic" aria-hidden>${_lucide('image')}</span>
-        <span class="react-chat-aside-nav-label">回工作台</span>
       </button>
       <button type="button" class="react-chat-aside-nav-item" data-shell-nav="/tasks" data-premium-nav="tasks" title="任务中心">
         <span class="react-chat-aside-nav-ic" aria-hidden>${_lucide('listTodo')}</span>

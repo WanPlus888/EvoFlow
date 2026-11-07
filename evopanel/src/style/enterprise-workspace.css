@@ -113,6 +113,30 @@ html.evopanel-macos-titlebar .react-chat-aside-toolbar {
   stroke-width: 1.5;
 }
 
+/* 1.4.9 回工作台去重：顶栏薄条已删，侧栏「回工作台」置顶 + 品牌蓝与常规灰项拉开 */
+.react-chat-aside-primary .react-chat-aside-nav-item.shell-nav-back-workbench {
+  color: var(--accent, #2563eb);
+  background: color-mix(in srgb, var(--accent, #2563eb) 10%, transparent);
+  font-weight: 500;
+}
+.react-chat-aside-primary .react-chat-aside-nav-item.shell-nav-back-workbench .react-chat-aside-nav-ic {
+  color: var(--accent, #2563eb);
+  opacity: 1;
+}
+.react-chat-aside-primary .react-chat-aside-nav-item.shell-nav-back-workbench:hover,
+.react-chat-aside-primary .react-chat-aside-nav-item.shell-nav-back-workbench.active {
+  color: var(--accent, #2563eb);
+  background: color-mix(in srgb, var(--accent, #2563eb) 18%, transparent);
+  font-weight: 600;
+}
+/* inset 描边替代 border，避免 hover/active 1px 抖动 */
+.react-chat-aside-primary .react-chat-aside-nav-item.shell-nav-back-workbench:hover {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent, #2563eb) 32%, transparent);
+}
+.react-chat-aside-primary .react-chat-aside-nav-item.shell-nav-back-workbench.active {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent, #2563eb) 44%, transparent);
+}
+
 .shell-aside-new-chat-btn {
   height: 30px;
   border-radius: 8px;
