@@ -7,8 +7,35 @@
  *
  * 用 iframe 承载外链（WebviewUrl::External 的等价前端呈现），避免另起原生
  * WebView 抢占主窗 HWND。需要原生外链 Webview 的场景走托盘「在浏览器打开工作台」。
+ *
+ * 1.4.7：壳侧栏由 router.js 的 evopanel-workbench-mode 藏；本页监听工作台
+ * iframe postMessage `{type:'evoflow-ops-brain'}`（兼容 'evopanel-ops-brain'）
+ * → navigate('/chat') 切回运营壳（侧栏随之恢复）。
  */
 import { WORKBENCH_HOME_URL } from '../lib/workbench-urls.js'
+
+let _onOpsBrainMessage = null
+
+function registerOpsBrainListener(frame) {
+  // 防御：render 重入时先注销旧监听
+  if (_onOpsBrainMessage) {
+    window.removeEventListener('message', _onOpsBrainMessage)
+    _onOpsBrainMessage = null
+  }
+  const onOpsBrainMessage = (ev) => {
+    // 仅接受工作台源（线上 origin），或本页 iframe 自身（同源调试）
+    const okOrigin = /^https:\/\/workbench\.kll666\.cn(:\d+)?$/.test(ev.origin)
+    const fromFrame = frame.contentWindow && ev.source === frame.contentWindow
+    if (!fromFrame && !okOrigin) return
+    const data = ev.data
+    if (!data || typeof data !== 'object') return
+    if (data.type !== 'evoflow-ops-brain' && data.type !== 'evopanel-ops-brain') return
+    // 切到运营壳：路由离开 workbench-home → setWorkbenchShellMode(false)
+    import('../router.js').then(({ navigate }) => navigate('/chat'))
+  }
+  window.addEventListener('message', onOpsBrainMessage)
+  _onOpsBrainMessage = onOpsBrainMessage
+}
 
 export async function render() {
   const page = document.createElement('div')
@@ -21,11 +48,17 @@ export async function render() {
   frame.src = WORKBENCH_HOME_URL
   frame.setAttribute('referrerpolicy', 'no-referrer-when-downgrade')
   frame.setAttribute('allow', 'clipboard-read; clipboard-write; fullscreen')
+  frame.dataset.opsBrain = '1'
 
   page.appendChild(frame)
+  registerOpsBrainListener(frame)
   return page
 }
 
 export function cleanup() {
+  if (_onOpsBrainMessage) {
+    window.removeEventListener('message', _onOpsBrainMessage)
+    _onOpsBrainMessage = null
+  }
   // iframe 随宿主移除自动释放，无需额外动作。
 }

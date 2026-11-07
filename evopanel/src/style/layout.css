@@ -1486,6 +1486,22 @@ html[data-theme='dark'] .sidebar-logo img {
   overflow: auto;
 }
 
+/* 1.4.7 工作台冷启：无壳侧栏（消遮挡）；小V 仍由 shouldHideAssistant 藏 */
+#app.evopanel-workbench-mode #app-shell-aside,
+#app.evopanel-workbench-mode .shell-aside-expand-btn {
+  display: none !important;
+}
+#app.evopanel-workbench-mode #main-col {
+  width: 100%;
+  flex: 1 1 100%;
+  min-width: 0;
+}
+#app.evopanel-workbench-mode #content {
+  flex: 1;
+  min-height: 0;
+  max-width: none;
+}
+
 /* Knowledge detail (Owned KB) — full-screen immersion; ← back to list restores sidebar */
 /* Topbar content is folded into .kv-workspace-bar; hide the redundant chrome */
 #app.evopanel-kb-detail-mode #tauri-main-chrome {

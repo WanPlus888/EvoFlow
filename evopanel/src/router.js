@@ -198,6 +198,12 @@ export function isImmersiveShellRoute(path) {
   return isUiExtensionRoute(path) || isShareViewRoute(path)
 }
 
+/** 1.4.7 工作台首页路由：无壳侧栏（evopanel-workbench-mode，独立于 studio 沉浸） */
+export function isWorkbenchHomeRoute(path) {
+  const p = String(path || '').split('?')[0]
+  return p === '/workbench-home' || p === 'workbench-home'
+}
+
 function setAuthShellMode(active) {
   const app = document.getElementById('app')
   if (app) app.classList.toggle('evopanel-auth-mode', active)
@@ -210,6 +216,13 @@ function setAuthShellMode(active) {
 function setAppStudioShellMode(active) {
   const app = document.getElementById('app')
   if (app) app.classList.toggle('evopanel-app-studio-mode', !!active)
+  if (active) closeAppSidebarDrawer()
+}
+
+/** 1.4.7 工作台首页：藏全局壳侧栏（消遮挡）；离开路由即恢复运营壳 */
+function setWorkbenchShellMode(active) {
+  const app = document.getElementById('app')
+  if (app) app.classList.toggle('evopanel-workbench-mode', !!active)
   if (active) closeAppSidebarDrawer()
 }
 
@@ -713,6 +726,7 @@ async function loadRoute() {
       }
       setAuthShellMode(false)
       setAppStudioShellMode(false)
+      setWorkbenchShellMode(false)
       setUiExtensionOpenMode(false)
       setChatHostVisible(false)
       setContentVisible(true)
@@ -748,6 +762,7 @@ async function loadRoute() {
 
   setAuthShellMode(isAuthRoute(path))
   setAppStudioShellMode(isImmersiveShellRoute(path))
+  setWorkbenchShellMode(isWorkbenchHomeRoute(path))
   setUiExtensionOpenMode(isUiExtensionRoute(path))
 
   if (isChatRoute(path)) {

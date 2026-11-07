@@ -46,6 +46,7 @@ export default defineConfig({
       'tests/zcode-flat-reasoning.test.js',
       'tests/turn-history-fold.test.tsx',
       'tests/font-size-tokens.test.js',
+      'tests/workbench-mode-shell.test.js',
       'tests/aside-title-shimmer.test.js',
       'tests/chat-summary-panel.test.js',
       'tests/compose-attach.test.js',

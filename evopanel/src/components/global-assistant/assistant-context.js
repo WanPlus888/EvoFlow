@@ -401,7 +401,8 @@ export function shouldHideAssistant(rawRoute) {
     path.startsWith('login/') ||
     path === 'update' ||
     /* 1.4.5 统一壳：主窗 /workbench-home 嵌工作台 iframe，右侧边缘「小V」条
-       会盖住工作台「生成记录」滚动条/播放钮（用户截图像素实锤）。工作台页隐藏小V。 */
+       会盖住工作台「生成记录」滚动条/播放钮（用户截图像素实锤）。工作台页隐藏小V。
+       1.4.7 workbench-mode（藏壳侧栏）仍依赖此条藏小V。 */
     path === 'workbench-home'
   )
 }
