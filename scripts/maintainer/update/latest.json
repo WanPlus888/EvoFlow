@@ -1,6 +1,6 @@
 {
-  "version": "1.4.5",
-  "minAppVersion": "1.4.5",
+  "version": "1.4.6",
+  "minAppVersion": "1.4.6",
   "updateKind": "full",
   "assetKind": "installer",
   "hash": "",

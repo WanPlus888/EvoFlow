@@ -73,6 +73,7 @@ describe('xiaomi page context', () => {
     expect(shouldHideAssistant('/qr-login')).toBe(true)
     expect(shouldHideAssistant('/chat')).toBe(false)
     expect(shouldHideAssistant('/proactive')).toBe(false)
+    expect(shouldHideAssistant('/workbench-home')).toBe(true)
   })
 })
 
