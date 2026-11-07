@@ -3,8 +3,14 @@
  *
  * 数据源：GET /api/tools/metadata 的 platform_domains（后端 evoflow.admin.platform_actions）。
  * 语义与 backend evoflow/config/platform_scope.py 对齐：
- *   不传 scope（null）= 全部动作（存量）；custom = domains ∪ actions − 扣除项，
- *   受 max_risk 上限约束。模型会在系统提示 <capability_profile> 里看到同源清单。
+ *   null = 不设限（存量）；
+ *   mode=all + max_risk = 全量但受风险上限；
+ *   mode=none = 全部禁用；
+ *   mode=custom = domains ∪ actions − 扣除项，再受 max_risk。
+ * 模型会在系统提示 <capability_profile> 里看到同源清单。
+ *
+ * 与工作台岗位白名单（workbench_*）是不同层：本面板只管 platform 域动作，
+ * 绝不会因为「不设限」而放开 workbench 生产工具。
  */
 import { escapeHtml, escapeAttr } from '../pages/agents-shared.js'
 
@@ -37,10 +43,12 @@ export function platformRiskCountsText(counts) {
 /**
  * 平台能力子面板 HTML（挂在工具页签 platform 勾选项下方，勾选才显示）。
  * @param {Array} domainsMeta mapPlatformDomains 产物
- * @param {Object|null} scope 已保存的 platform_scope（null/缺省 = 全部动作）
+ * @param {Object|null} scope 已保存的 platform_scope（null/缺省 = 不设限）
  */
 export function renderPlatformScopePanel(domainsMeta, scope) {
-  const isCustom = scope?.mode === 'custom'
+  const mode = !scope ? 'unrestricted' : scope.mode === 'custom' ? 'custom' : scope.mode === 'none' ? 'none' : scope.mode === 'all' ? 'all' : 'unrestricted'
+  const isCustom = mode === 'custom'
+  const showRisk = mode === 'custom' || mode === 'all'
   const maxRisk = scope?.max_risk || 'write'
   const domSet = new Set((scope?.domains || []).map((d) => String(d).toLowerCase()))
   const actAllow = new Set((scope?.actions || []).filter((a) => !String(a).startsWith('-')).map((a) => String(a).toLowerCase()))
@@ -78,21 +86,23 @@ export function renderPlatformScopePanel(domainsMeta, scope) {
   return `<div class="re-platform-scope" data-platform-scope hidden>
     <div class="re-ps-head">
       <strong>平台能力清单</strong>
-      <span class="re-ps-head-hint">模型会在系统提示里看到这份清单；「全部动作」= 不设限（存量行为）</span>
+      <span class="re-ps-head-hint">只管 platform 域动作；不会放开工作台 workbench_* 生产工具。「不设限」= 存量行为</span>
     </div>
     <div class="re-ps-modes">
-      <label class="re-ps-mode"><input type="radio" name="platform_mode" value="all" ${isCustom ? '' : 'checked'}> 全部动作</label>
-      <label class="re-ps-mode"><input type="radio" name="platform_mode" value="custom" ${isCustom ? 'checked' : ''}> 自定义范围</label>
+      <label class="re-ps-mode"><input type="radio" name="platform_mode" value="unrestricted" ${mode === 'unrestricted' ? 'checked' : ''}> 不设限</label>
+      <label class="re-ps-mode"><input type="radio" name="platform_mode" value="all" ${mode === 'all' ? 'checked' : ''}> 全量（含风险上限）</label>
+      <label class="re-ps-mode"><input type="radio" name="platform_mode" value="none" ${mode === 'none' ? 'checked' : ''}> 全部禁用</label>
+      <label class="re-ps-mode"><input type="radio" name="platform_mode" value="custom" ${mode === 'custom' ? 'checked' : ''}> 自定义范围</label>
+    </div>
+    <div class="re-ps-risk" ${showRisk ? '' : 'hidden'}>
+      <span>风险上限：</span>
+      ${['read', 'write', 'destructive']
+        .map(
+          (r) => `<label class="re-ps-mode"><input type="radio" name="platform_max_risk" value="${r}" ${maxRisk === r ? 'checked' : ''}> ${PLATFORM_MAX_RISK_ZH[r]}</label>`,
+        )
+        .join('')}
     </div>
     <div class="re-ps-custom" ${isCustom ? '' : 'hidden'}>
-      <div class="re-ps-risk">
-        <span>风险上限：</span>
-        ${['read', 'write', 'destructive']
-          .map(
-            (r) => `<label class="re-ps-mode"><input type="radio" name="platform_max_risk" value="${r}" ${maxRisk === r ? 'checked' : ''}> ${PLATFORM_MAX_RISK_ZH[r]}</label>`,
-          )
-          .join('')}
-      </div>
       <div class="re-ps-domains">${domainRows || '<div class="re-empty">平台动作目录不可用（元数据未加载）</div>'}</div>
       <div class="re-ps-summary-line">已授权 <em class="re-ps-dom-count">0</em> 域 / <em class="re-ps-act-count">0</em> 动作</div>
     </div>
@@ -100,9 +110,12 @@ export function renderPlatformScopePanel(domainsMeta, scope) {
 }
 
 export function platformScopeAllowedCount(domainsMeta, scope) {
-  if (!scope || scope.mode !== 'custom') {
+  if (!scope || scope.mode === 'all' || scope.mode === 'unrestricted') {
     const total = domainsMeta.reduce((acc, d) => acc + d.actions.length, 0)
     return { domains: domainsMeta.length, actions: total }
+  }
+  if (scope.mode === 'none') {
+    return { domains: 0, actions: 0 }
   }
   const allow = new Set((scope.actions || []).filter((a) => !String(a).startsWith('-')).map((a) => String(a).toLowerCase()))
   const deny = new Set((scope.actions || []).filter((a) => String(a).startsWith('-')).map((a) => String(a).slice(1).toLowerCase()))
@@ -121,18 +134,25 @@ export function platformScopeAllowedCount(domainsMeta, scope) {
 }
 
 export function platformScopeSummaryText(domainsMeta, scope) {
+  if (!scope) return `不设限（全部 ${domainsMeta.reduce((n, d) => n + d.actions.length, 0)} 动作）`
+  if (scope.mode === 'none') return '全部禁用'
+  if (scope.mode === 'all') {
+    return `全量（上限 ${PLATFORM_MAX_RISK_ZH[scope.max_risk] || scope.max_risk}）`
+  }
   const { domains, actions } = platformScopeAllowedCount(domainsMeta, scope)
-  if (!scope || scope.mode !== 'custom') return `全部 ${domains} 域 / ${actions} 动作`
   return `${domains} 域 / ${actions} 动作（上限 ${PLATFORM_MAX_RISK_ZH[scope.max_risk] || scope.max_risk}）`
 }
 
-/** 从编辑器读出 platform_scope；未勾选 platform 或选择「全部动作」→ null（存量语义）。 */
+/** 从编辑器读出 platform_scope；未勾选 platform → null；不设限 → null。 */
 export function readPlatformScopeFromEditor(overlay) {
   const panel = overlay.querySelector('[data-platform-scope]')
   if (!panel || panel.hidden) return null
-  const mode = panel.querySelector('input[name=platform_mode]:checked')?.value || 'all'
-  if (mode !== 'custom') return null
+  const mode = panel.querySelector('input[name=platform_mode]:checked')?.value || 'unrestricted'
+  if (mode === 'unrestricted') return null
+  if (mode === 'none') return { mode: 'none', domains: [], actions: [], max_risk: 'write' }
   const max_risk = panel.querySelector('input[name=platform_max_risk]:checked')?.value || 'write'
+  if (mode === 'all') return { mode: 'all', domains: [], actions: [], max_risk }
+  // custom
   const domains = []
   const actions = []
   panel.querySelectorAll('.re-ps-domain').forEach((row) => {
@@ -157,7 +177,6 @@ export function readPlatformScopeFromEditor(overlay) {
 export function bindPlatformScopePanel(overlay, domainsMeta) {
   const panel = overlay.querySelector('[data-platform-scope]')
   if (!panel) return
-  // 供 setPlatformScopeState / 模板引擎复用同一份目录元数据。
   overlay.__platformScopeDomains = domainsMeta || []
   const platformCb = overlay.querySelector('.editor-tool-list input[value="platform"]')
   const syncVisible = () => {
@@ -165,6 +184,14 @@ export function bindPlatformScopePanel(overlay, domainsMeta) {
   }
   syncVisible()
   platformCb?.addEventListener('change', syncVisible)
+
+  const syncModeBodies = () => {
+    const mode = panel.querySelector('input[name=platform_mode]:checked')?.value || 'unrestricted'
+    const customBody = panel.querySelector('.re-ps-custom')
+    const riskBody = panel.querySelector('.re-ps-risk')
+    if (customBody) customBody.hidden = mode !== 'custom'
+    if (riskBody) riskBody.hidden = !(mode === 'custom' || mode === 'all')
+  }
 
   const updateSummary = () => {
     const scope = readPlatformScopeFromEditor(overlay)
@@ -175,8 +202,7 @@ export function bindPlatformScopePanel(overlay, domainsMeta) {
 
   panel.querySelectorAll('input[name=platform_mode]').forEach((radio) =>
     radio.addEventListener('change', () => {
-      const custom = radio.value === 'custom' && radio.checked
-      panel.querySelector('.re-ps-custom').hidden = !custom
+      syncModeBodies()
       updateSummary()
     }),
   )
@@ -186,7 +212,6 @@ export function bindPlatformScopePanel(overlay, domainsMeta) {
       if (actionsEl) actionsEl.hidden = !actionsEl.hidden
     }),
   )
-  // 域级开关：勾选 = 整域放行（动作明细同步全勾）；取消 = 清空（明细里可单独勾动作）
   panel.querySelectorAll('input[name=platform_domains]').forEach((domCb) =>
     domCb.addEventListener('change', () => {
       const row = domCb.closest('.re-ps-domain')
@@ -197,6 +222,8 @@ export function bindPlatformScopePanel(overlay, domainsMeta) {
     }),
   )
   panel.querySelectorAll('input[name=platform_actions]').forEach((cb) => cb.addEventListener('change', updateSummary))
+  panel.querySelectorAll('input[name=platform_max_risk]').forEach((r) => r.addEventListener('change', updateSummary))
+  syncModeBodies()
   updateSummary()
 }
 
@@ -217,22 +244,24 @@ export function resolveTriStatePayload(mode, checkedValues) {
 /**
  * 编程式设置平台能力清单状态（岗位模板 / 预填用）。
  *
- * scope 语义与 readPlatformScopeFromEditor 对齐：
- * - null / {mode:'all'} → 「全部动作」radio（max_risk 仍生效，仅受上限约束）；
- * - {mode:'custom', domains, actions, max_risk} → 自定义：域勾选并同步动作明细，
- *   裸名 actions 额外勾选（域未勾时为动作级授权）。
- * 不派发 change 事件（程序化赋值），面板显隐/摘要由本函数直接同步。
+ * - null → 「不设限」
+ * - {mode:'all', max_risk} → 「全量（含风险上限）」
+ * - {mode:'none'} → 「全部禁用」
+ * - {mode:'custom', ...} → 「自定义范围」
  */
 export function setPlatformScopeState(overlay, scope) {
   const panel = overlay.querySelector('[data-platform-scope]')
   if (!panel) return
-  const isCustom = scope?.mode === 'custom'
-  const allRadio = panel.querySelector('input[name=platform_mode][value=all]')
-  const customRadio = panel.querySelector('input[name=platform_mode][value=custom]')
-  if (allRadio) allRadio.checked = !isCustom
-  if (customRadio) customRadio.checked = !!isCustom
+  const mode = !scope ? 'unrestricted' : scope.mode === 'custom' ? 'custom' : scope.mode === 'none' ? 'none' : scope.mode === 'all' ? 'all' : 'unrestricted'
+  const isCustom = mode === 'custom'
+
+  panel.querySelectorAll('input[name=platform_mode]').forEach((r) => {
+    r.checked = r.value === mode
+  })
   const customBody = panel.querySelector('.re-ps-custom')
   if (customBody) customBody.hidden = !isCustom
+  const riskBody = panel.querySelector('.re-ps-risk')
+  if (riskBody) riskBody.hidden = !(mode === 'custom' || mode === 'all')
 
   panel.querySelectorAll('input[name=platform_domains]').forEach((cb) => {
     cb.checked = false
@@ -264,7 +293,15 @@ export function setPlatformScopeState(overlay, scope) {
     }
   }
 
-  const { domains, actions } = platformScopeAllowedCount(overlay.__platformScopeDomains || [], isCustom ? scope : scope && scope.mode === 'all' ? { mode: 'all', max_risk: risk } : null)
+  const countScope =
+    mode === 'custom'
+      ? scope
+      : mode === 'all'
+        ? { mode: 'all', max_risk: risk }
+        : mode === 'none'
+          ? { mode: 'none' }
+          : null
+  const { domains, actions } = platformScopeAllowedCount(overlay.__platformScopeDomains || [], countScope)
   panel.querySelectorAll('.re-ps-dom-count').forEach((el) => (el.textContent = String(domains)))
   panel.querySelectorAll('.re-ps-act-count').forEach((el) => (el.textContent = String(actions)))
 }

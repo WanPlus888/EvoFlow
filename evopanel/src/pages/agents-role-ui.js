@@ -1807,10 +1807,8 @@ async function showRoleDetailDialog(id, page, state) {
       const hasPlatform = activeTools.some((t) => String(t).toLowerCase() === 'platform')
       if (hasPlatform) {
         overviewStats.push({
-          label: agent.platform_scope?.mode === 'custom'
-            ? `平台 ${platformScopeSummaryText(metaPlatformDomains, agent.platform_scope)}`
-            : '平台 全部动作',
-          tip: '平台能力清单（模型系统提示同步可见）',
+          label: `平台 ${platformScopeSummaryText(metaPlatformDomains, agent.platform_scope || null)}`,
+          tip: '平台能力清单（模型系统提示同步可见；与 workbench_* 岗位白名单分层）',
         })
       }
     } else {

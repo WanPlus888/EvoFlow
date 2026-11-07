@@ -21,8 +21,10 @@ sys.path.insert(0, str(_BACKEND_ROOT / "packages" / "harness"))
 
 from evoflow.collab.workbench_role_agents import (  # noqa: E402
     BASE_TOOLS,
+    DRAFT_WORKBENCH_ORDER_TOOL,
     IMAGE_WORKBENCH_TOOLS,
     KEFU_OP,
+    ROLE_PLATFORM_SCOPES,
     SHIPIN_OP,
     TUANTU_OP,
     VIDEO_WORKBENCH_TOOLS,
@@ -115,6 +117,19 @@ def test_ensure_seeds_tuantu_and_shipin_tools(isolated_db):
     assert kefu.agent_name == "客服岗"
     assert kefu.tools is not None
     assert not any(t.startswith("workbench_") for t in kefu.tools)
+    # 草稿三岗可见；不在生产 WORKBENCH 集合
+    assert DRAFT_WORKBENCH_ORDER_TOOL in tuantu.tools
+    assert DRAFT_WORKBENCH_ORDER_TOOL in shipin.tools
+    assert DRAFT_WORKBENCH_ORDER_TOOL in kefu.tools
+    assert DRAFT_WORKBENCH_ORDER_TOOL not in WORKBENCH_TOOL_NAMES
+    # L1 platform_scope 种子
+    assert tuantu.platform_scope is not None
+    assert tuantu.platform_scope.mode == ROLE_PLATFORM_SCOPES[TUANTU_OP]["mode"]
+    assert tuantu.platform_scope.domains == ROLE_PLATFORM_SCOPES[TUANTU_OP]["domains"]
+    assert shipin.platform_scope is not None
+    assert shipin.platform_scope.mode == "custom"
+    assert kefu.platform_scope is not None
+    assert kefu.platform_scope.mode == "none"
 
 
 # ── 2) 幂等 ────────────────────────────────────────────────────────────
@@ -205,3 +220,31 @@ def test_seeded_kefu_session_binding_gets_no_workbench(isolated_db):
     out = set(bound_tools_for_session_agent("agent:kefu-op:seed-test", "agent"))
     assert not out & WORKBENCH_TOOL_NAMES
     assert {"read", "bash"} <= out
+
+
+# ── 5) 改能力后下一轮生效（invalidate 去重路径）──────────────────────────
+
+
+def test_seeded_capability_change_next_turn_after_invalidate(isolated_db):
+    """改 tools / platform_scope 后 invalidate，会话绑定立刻反映（下一轮生效）。"""
+    from evoflow.config.agents_config import invalidate_agent_config_cache, save_agent_config
+
+    ensure_workbench_role_agents()
+    before = set(bound_tools_for_session_agent("agent:tuantu-op:cap-refresh", "agent"))
+    assert "workbench_image_submit" in before
+    assert "workbench_video_submit" not in before
+
+    cfg = load_agent_config(TUANTU_OP)
+    payload = cfg.model_dump(mode="python", exclude={"name"})
+    # 收窄为仅 products_list（去掉 image_submit）
+    payload["tools"] = [t for t in (cfg.tools or []) if t != "workbench_image_submit"]
+    payload["platform_scope"] = {"mode": "none", "domains": [], "actions": [], "max_risk": "write"}
+    save_agent_config(TUANTU_OP, payload)
+    invalidate_agent_config_cache(TUANTU_OP)
+
+    after = set(bound_tools_for_session_agent("agent:tuantu-op:cap-refresh", "agent"))
+    assert "workbench_image_submit" not in after
+    assert "workbench_products_list" in after
+    reloaded = load_agent_config(TUANTU_OP)
+    assert reloaded.platform_scope is not None
+    assert reloaded.platform_scope.mode == "none"

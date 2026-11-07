@@ -35,12 +35,12 @@ const DOMAINS = mapPlatformDomains([
   },
 ])
 
-function selectCustomMode(overlay) {
-  // happy-dom 程序化设 checked 不触发同组互斥，真浏览器会自动取消；显式对齐。
-  overlay.querySelector('input[name=platform_mode][value=all]').checked = false
-  const custom = overlay.querySelector('input[name=platform_mode][value=custom]')
-  custom.checked = true
-  custom.dispatchEvent(new Event('change'))
+function selectMode(overlay, value) {
+  overlay.querySelectorAll('input[name=platform_mode]').forEach((r) => {
+    r.checked = r.value === value
+  })
+  const checked = overlay.querySelector(`input[name=platform_mode][value=${value}]`)
+  checked?.dispatchEvent(new Event('change'))
 }
 
 function mountEditor({ scope = null, platformChecked = false } = {}) {
@@ -77,15 +77,21 @@ describe('renderPlatformScopePanel', () => {
     expect(overlay.querySelector('input[name=platform_max_risk][value=read]').checked).toBe(true)
     const domCb = overlay.querySelector('input[name=platform_domains][value="knowledge"]')
     expect(domCb.checked).toBe(true)
-    // 域勾选 → 动作明细默认全勾（含 destructive，尽管上限 read 会在后端拒绝）
     const actionCbs = [...overlay.querySelectorAll('.re-ps-domain[data-domain=knowledge] input[name=platform_actions]')]
     expect(actionCbs.every((cb) => cb.checked)).toBe(true)
+  })
+
+  it('renders four modes including none and all', () => {
+    const overlay = mountEditor({ platformChecked: true })
+    const values = [...overlay.querySelectorAll('input[name=platform_mode]')].map((r) => r.value)
+    expect(values).toEqual(['unrestricted', 'all', 'none', 'custom'])
   })
 })
 
 describe('readPlatformScopeFromEditor', () => {
-  it('returns null when mode = all (legacy unrestricted)', () => {
+  it('returns null when mode = unrestricted (legacy 不设限)', () => {
     const overlay = mountEditor({ platformChecked: true })
+    expect(overlay.querySelector('input[name=platform_mode][value=unrestricted]').checked).toBe(true)
     expect(readPlatformScopeFromEditor(overlay)).toBeNull()
   })
 
@@ -94,13 +100,35 @@ describe('readPlatformScopeFromEditor', () => {
     expect(readPlatformScopeFromEditor(overlay)).toBeNull()
   })
 
+  it('returns mode=all with max_risk', () => {
+    const overlay = mountEditor({ platformChecked: true })
+    selectMode(overlay, 'all')
+    overlay.querySelector('input[name=platform_max_risk][value=read]').checked = true
+    expect(readPlatformScopeFromEditor(overlay)).toEqual({
+      mode: 'all',
+      domains: [],
+      actions: [],
+      max_risk: 'read',
+    })
+  })
+
+  it('returns mode=none', () => {
+    const overlay = mountEditor({ platformChecked: true })
+    selectMode(overlay, 'none')
+    expect(readPlatformScopeFromEditor(overlay)).toEqual({
+      mode: 'none',
+      domains: [],
+      actions: [],
+      max_risk: 'write',
+    })
+  })
+
   it('domain checked + one action unchecked → minus-prefixed deny entry', () => {
     const overlay = mountEditor({ platformChecked: true })
-    selectCustomMode(overlay)
+    selectMode(overlay, 'custom')
     const domCb = overlay.querySelector('input[name=platform_domains][value="knowledge"]')
     domCb.checked = true
     domCb.dispatchEvent(new Event('change'))
-    // 取消勾选 destructive 动作
     const del = overlay.querySelector('input[name=platform_actions][value="knowledge.delete"]')
     del.checked = false
     del.dispatchEvent(new Event('change'))
@@ -115,7 +143,7 @@ describe('readPlatformScopeFromEditor', () => {
 
   it('domain unchecked + single action checked → bare action grant', () => {
     const overlay = mountEditor({ platformChecked: true })
-    selectCustomMode(overlay)
+    selectMode(overlay, 'custom')
     const cb = overlay.querySelector('input[name=platform_actions][value="media.catalog"]')
     cb.checked = true
     cb.dispatchEvent(new Event('change'))
@@ -128,7 +156,12 @@ describe('readPlatformScopeFromEditor', () => {
 describe('summary counting', () => {
   it('counts all for null scope', () => {
     expect(platformScopeAllowedCount(DOMAINS, null)).toEqual({ domains: 2, actions: 6 })
-    expect(platformScopeSummaryText(DOMAINS, null)).toBe('全部 2 域 / 6 动作')
+    expect(platformScopeSummaryText(DOMAINS, null)).toContain('不设限')
+  })
+
+  it('summarizes none and all', () => {
+    expect(platformScopeSummaryText(DOMAINS, { mode: 'none' })).toBe('全部禁用')
+    expect(platformScopeSummaryText(DOMAINS, { mode: 'all', max_risk: 'read' })).toBe('全量（上限 只读）')
   })
 
   it('counts domain grants minus denies plus bare allows', () => {
@@ -168,5 +201,20 @@ describe('setPlatformScopeState', () => {
     const scope = readPlatformScopeFromEditor(overlay)
     expect(scope.mode).toBe('custom')
     expect(scope.domains).toEqual(['media'])
+  })
+
+  it('programmatically applies all + none without collapsing to unrestricted', () => {
+    const overlay = mountEditor({ platformChecked: true, scope: null })
+    setPlatformScopeState(overlay, { mode: 'all', domains: [], actions: [], max_risk: 'read' })
+    expect(overlay.querySelector('input[name=platform_mode][value=all]').checked).toBe(true)
+    expect(readPlatformScopeFromEditor(overlay)).toEqual({
+      mode: 'all',
+      domains: [],
+      actions: [],
+      max_risk: 'read',
+    })
+    setPlatformScopeState(overlay, { mode: 'none', domains: [], actions: [], max_risk: 'write' })
+    expect(overlay.querySelector('input[name=platform_mode][value=none]').checked).toBe(true)
+    expect(readPlatformScopeFromEditor(overlay).mode).toBe('none')
   })
 })

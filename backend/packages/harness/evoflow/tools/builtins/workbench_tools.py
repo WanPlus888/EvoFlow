@@ -18,10 +18,12 @@ _REF_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$")
 _PRODUCT_ID_RE = re.compile(r"^[A-Za-z0-9_-]{1,80}$")
 _ID_RE = re.compile(r"^[A-Za-z0-9_-]{1,100}$")
 
-# 全部工作台工具名（岗位白名单单一事实源）。
+# 全部工作台**生产**工具名（岗位白名单单一事实源 / L2）。
 # 这些工具不随模式目录/继承默认发放：必须由岗位显式勾选
 # （AgentConfig.tools / worker_profile.tools）后才可解析绑定；
 # 未授权角色在会话绑定与 worker 继承两条路径上都会被剥离（fail-closed）。
+# 与 L1 ``platform_scope``（平台域 ACL）分层：platform「不设限」不会放开本集合。
+# ``draft_workbench_order`` 故意不在此集合（草稿非生产，三岗可显式挂在 BASE_TOOLS）。
 WORKBENCH_TOOL_NAMES: frozenset[str] = frozenset({
     "workbench_products_list",
     "workbench_image_submit",

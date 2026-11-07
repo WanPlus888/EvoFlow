@@ -1,12 +1,12 @@
 {
-  "version": "1.4.0",
-  "minAppVersion": "1.4.0",
+  "version": "1.4.1",
+  "minAppVersion": "1.4.1",
   "updateKind": "full",
   "assetKind": "installer",
   "hash": "",
   "url": "https://localhost/evoflow-fork-auto-update-disabled.json",
   "size": 0,
-  "changelog": "电商运营终端 1.4.0：基于官方 EvoFlow v1.3.7 地基 + 私有品牌/阶段1–2（岗位白名单、工单草稿、终端一体化）。本版未专项开启能力边界/部门群回执/节点级能力配置。自动更新关闭。",
+  "changelog": "电商运营终端 1.4.1：员工能力边界协同——平台能力四态可配，与岗位 workbench 白名单分层 fail-closed；三岗种子写齐；草稿不派单不扣费。自动更新关闭。",
   "notes": "brand fork; updater disabled; do not publish EvovexAI update URLs",
   "publishedAt": "2026-11-07T00:00:00Z"
 }

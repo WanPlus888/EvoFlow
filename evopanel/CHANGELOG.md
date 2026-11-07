@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.4.1] - 2026-11-07
+
+**P1 第一刀：员工能力边界协同**（路径 C 地基之上）。
+
+### 本版要点
+
+- 官方平台能力清单四态可配：**不设限 / 全量（含风险上限）/ 全部禁用 / 自定义域与动作**
+- 与岗位白名单 **分层叠加**：L1=`platform_scope`（平台域 ACL）；L2=`workbench_*` 岗位子集；**「不设限」不会冲开工作台 fail-closed**
+- 三岗种子写入 L1+L2；`draft_workbench_order` 三岗可见但仍不派单不扣费（不在生产 WORKBENCH 集合）
+- 改能力走现有 `invalidate_agent_config_cache`，下一轮生效
+
+### 明确未做
+
+- 部门群派工条 / 节点级工作流画布（下一刀）
+- Windows 包；不 push；不自动覆盖 /Applications
+
+详见 `tools/branding/P1-capability-layering.md`。
+
 ## [1.4.0] - 2026-11-07
 
 **Path C**：干净叠官方 **v1.3.7** 地基后重放私有品牌/业务补丁。
@@ -17,7 +35,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### 明确未做（后置）
 
-- 不专项开启/验收：能力边界、部门群自动回执、节点级能力配置
+- 不专项开启/验收：部门群自动回执、节点级能力配置（能力边界见 1.4.1）
 - 不做 Windows 包；不 push 任何 remote
 
 详见 `scripts/maintainer/windows/release-notes/PRODUCT-NOTES-1.4.0.md`。
