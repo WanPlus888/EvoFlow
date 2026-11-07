@@ -30,7 +30,9 @@ const ICONS = {
   bookOpen: '<path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>',
   fileSearch: '<path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/><path d="M14 2v5a1 1 0 0 0 1 1h5"/><circle cx="11.5" cy="14.5" r="2.5"/><path d="M13.3 16.3 15 18"/>',
   blocks: '<rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/><path d="M14 14h7v7h-7z"/>',
-  image: '<rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>',
+  // 回工作台 — 细线复合：左回程箭头（杆与面板横隔同轴 y=12）+ 右 2×2 工作台面板
+  backWorkbench:
+    '<path d="m9 7-5 5 5 5"/><path d="M10 12H4"/><rect x="12" y="5" width="9" height="14" rx="2"/><path d="M16.5 5v14"/><path d="M12 12h9"/>',
   chevronLeft: '<path d="m15 18-6-6 6-6"/>',
   chevronRight: '<path d="m9 18 6-6-6-6"/>',
   moreHorizontal: '<circle cx="5" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.6" fill="currentColor" stroke="none"/>',
@@ -523,7 +525,7 @@ export function initShellAside(el) {
     </div>
     <nav class="react-chat-aside-primary" aria-label="产品导航">
       <button type="button" class="react-chat-aside-nav-item shell-nav-back-workbench" data-shell-nav="/workbench-home" data-testid="nav-workbench-home" title="回工作台首页（/workbench-home，嵌电商图片工作台）" aria-label="回工作台">
-        <span class="react-chat-aside-nav-ic" aria-hidden>${_lucide('image')}</span>
+        <span class="react-chat-aside-nav-ic" aria-hidden>${_lucide('backWorkbench')}</span>
         <span class="react-chat-aside-nav-label">回工作台</span>
       </button>
       <div class="shell-aside-nav-divider" aria-hidden="true"></div>

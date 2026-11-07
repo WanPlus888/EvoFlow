@@ -48,6 +48,23 @@ describe('1.4.9 回工作台去重：侧栏唯一回程，置顶 + 品牌色（Q
     expect(moreBody).not.toContain('nav-workbench-home')
   })
 
+  it('图标精致化：backWorkbench 细线复合（回程箭头 + 2×2 面板），弃 lucide image', () => {
+    const btn =
+      SHELL_ASIDE.match(/data-testid="nav-workbench-home"[\s\S]*?<\/button>/)?.[0] ?? ''
+    expect(btn).toContain("_lucide('backWorkbench')")
+    expect(btn).not.toContain("_lucide('image')")
+    // ICONS 键存在且为细线复合：回程箭头杆（与面板横隔同轴 y=12）+ 圆角面板外框 + 十字分格
+    const def = SHELL_ASIDE.match(/backWorkbench:\s*'([^']*)'/)?.[1] ?? ''
+    expect(def).not.toBe('')
+    expect(def).toContain('<path d="M10 12H4"')
+    expect(def).toContain('<path d="m9 7-5 5 5 5"/>')
+    expect(def).toMatch(/<rect x="12" y="5" width="9" height="14" rx="2"\/>/)
+    expect(def).toContain('<path d="M16.5 5v14"')
+    expect(def).toContain('<path d="M12 12h9"')
+    // 纯细线，无粗填色块
+    expect(def).not.toMatch(/fill=/)
+  })
+
   it('品牌色 CSS：蓝字 + 浅蓝底，hover/active 更强（enterprise-workspace.css）', () => {
     expect(WORKSPACE_CSS).toMatch(
       /\.react-chat-aside-primary \.react-chat-aside-nav-item\.shell-nav-back-workbench \{/,
