@@ -100,6 +100,11 @@ import { ToolActivityFold } from './ToolActivityFold.js'
 import { FileEditDiffModal, type FileEditDiffModalPayload } from './FileEditDiffModal.js'
 import { FileEditDiffStatBrief } from './FileEditDiffPanel.js'
 import { ToolCardIcon, resolveToolCardCategory } from './ToolCardIcon.js'
+import { WorkbenchOrderDraftCard } from './WorkbenchOrderDraftCard.js'
+import {
+  isWorkbenchOrderDraftTool,
+  parseWorkbenchOrderDraftOutput,
+} from '../lib/workbench-order-draft.js'
 import { resolveFileIconSrc } from '../lib/file-icon-helpers.js'
 import { ASSETS_ACTION_ZH, resolveRegisteredToolCardBrief } from '../tool-cards/briefs.js'
 import {
@@ -2217,6 +2222,16 @@ function ToolCallListInner({
                 ))}
               </div>
             ) : null}
+            {(() => {
+              if (running || !isWorkbenchOrderDraftTool(toolKind, toolName)) return null
+              const draft = parseWorkbenchOrderDraftOutput(t.output)
+              if (!draft) return null
+              return (
+                <div className="msg-tool-hang" data-testid="wb-order-draft-hang">
+                  <WorkbenchOrderDraftCard draft={draft} />
+                </div>
+              )
+            })()}
             {mediaImagePreview ? (
               <div className="msg-tool-hang">
                 <MediaImagePreview

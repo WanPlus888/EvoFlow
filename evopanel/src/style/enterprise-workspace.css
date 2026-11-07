@@ -1065,3 +1065,62 @@ body .msg.msg-turn.msg-turn--user.msg-user .msg-bubble.msg-turn-user-bubble * {
   color: var(--text-secondary, #656b73);
   border: none;
 }
+
+
+/* —— 1.4.4 工单草稿确认卡 / 生产工单待确认条 —— */
+.wb-order-draft-card {
+  margin: 8px 0 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--line, #e2e8f0);
+  border-radius: 10px;
+  background: var(--surface, #fff);
+  max-width: 520px;
+}
+.wb-order-draft-card__head {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;
+}
+.wb-order-draft-card__pill {
+  font-size: 11px; padding: 1px 8px; border-radius: 99px;
+  background: #e8f1ff; color: #1d4ed8;
+}
+.wb-order-draft-card__ref {
+  font-size: 11px; opacity: .75; background: #f1f5f9; padding: 1px 6px; border-radius: 4px;
+}
+.wb-order-draft-card__meta {
+  display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 0 0 8px; font-size: 12.5px;
+}
+.wb-order-draft-card__meta dt { color: #64748b; }
+.wb-order-draft-card__meta dd { margin: 0; }
+.wb-order-draft-card__warn { margin: 0 0 8px; font-size: 12px; color: #b45309; }
+.wb-order-draft-card__actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.wb-order-draft-card__btn {
+  height: 28px; padding: 0 12px; border-radius: 8px; border: 1px solid #cbd5e1;
+  background: #fff; font-size: 12.5px; cursor: pointer;
+}
+.wb-order-draft-card__btn.primary {
+  background: #2563eb; border-color: #2563eb; color: #fff;
+}
+.wb-order-draft-card__btn.primary:disabled { opacity: .55; cursor: default; }
+.wb-order-draft-card__hint, .wb-order-draft-card__msg {
+  margin: 8px 0 0; font-size: 12px; color: #64748b;
+}
+.wb-order-draft-card__msg.is-ok { color: #15803d; }
+.wb-order-draft-card__msg.is-err { color: #b91c1c; }
+
+.uiext-ops-draft-bar {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 10px 14px; border-bottom: 1px solid var(--line, #e2e8f0);
+  background: #f8fafc; max-height: 40%; overflow: auto;
+}
+.uiext-ops-draft-bar__title { font-size: 13px; font-weight: 600; }
+.uiext-ops-draft-bar__empty { font-size: 12px; color: #64748b; }
+.uiext-ops-draft-row {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 8px 10px; background: #fff; border: 1px solid #e2e8f0; border-radius: 8px;
+}
+.uiext-ops-draft-row__meta { flex: 1; min-width: 160px; font-size: 12.5px; }
+.uiext-ops-draft-row__ref { font-family: ui-monospace, monospace; font-size: 11px; opacity: .75; }
+.uiext-ops-track {
+  margin-top: 12px; padding-top: 10px; border-top: 1px dashed #e2e8f0;
+}
+.uiext-ops-track__row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 6px; }

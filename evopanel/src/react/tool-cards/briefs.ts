@@ -322,6 +322,14 @@ function miscBrief(ctx: ToolCardBriefContext): string | null {
     return null
   }
   // ── 记忆类 ──
+  if (toolKind === 'draft_workbench_order') {
+    const ref = typeof inputObj?.external_ref === 'string' ? briefFull(inputObj.external_ref as string) : ''
+    const t = typeof inputObj?.text === 'string' ? briefFull(inputObj.text as string) : ''
+    if (ref && t) return `${ref} · ${t}`
+    if (ref) return ref
+    if (t) return t
+    return '工单草稿'
+  }
   if (toolKind === 'remember' && typeof inputObj?.title === 'string') return briefFull(inputObj.title as string)
   if (toolKind === 'recall' && query) return briefFull(query)
   // ── 待办/自动化 ──

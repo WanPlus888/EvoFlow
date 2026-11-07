@@ -223,6 +223,7 @@ export default defineConfig({
       'tests/dept-group-wake-queue.test.js',
       'tests/dept-group-nest-policy.test.js',
       'tests/dept-group-dispatch-status.test.js',
+      'tests/workbench-order-draft.test.js',
       'tests/dept-group-mentions.test.js',
       'tests/dept-group-transcript.test.js',
       'tests/dept-member-work-session.test.js',

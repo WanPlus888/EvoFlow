@@ -242,6 +242,69 @@ function resolveEntry(row, id) {
   return entry
 }
 
+
+/** 1.4.4：生产工单扩展页顶部「待确认草稿」条（双入口确认派单，不改工作台热文件） */
+async function mountOpsDraftBar(page, extensionId) {
+  if (extensionId !== 'ecom-ops-board') return
+  const existing = page.querySelector('#uiext-ops-draft-bar')
+  if (existing) existing.remove()
+  const bar = document.createElement('div')
+  bar.id = 'uiext-ops-draft-bar'
+  bar.className = 'uiext-ops-draft-bar'
+  bar.innerHTML = '<div class="uiext-ops-draft-bar__title">待确认派单</div><div class="uiext-ops-draft-bar__empty">加载中…</div>'
+  const body = page.querySelector('#uiext-shell-body')
+  if (!body) return
+  body.prepend(bar)
+
+  const { gatewayJson } = await import('../lib/gateway-json.js')
+
+  const render = async () => {
+    try {
+      const res = await gatewayJson('GET', '/opsboard/drafts')
+      const drafts = Array.isArray(res?.drafts) ? res.drafts : []
+      if (!drafts.length) {
+        bar.innerHTML = '<div class="uiext-ops-draft-bar__title">待确认派单</div><div class="uiext-ops-draft-bar__empty">暂无待确认草稿。聊天里出草稿后可在此或聊天卡确认（确认前不扣费）。</div>'
+        return
+      }
+      bar.innerHTML = '<div class="uiext-ops-draft-bar__title">待确认派单（点确认才扣费）</div>' + drafts.map((d) => {
+        const ref = String(d.external_ref || '')
+        const label = d.product || d.name || '未命名'
+        const type = d.type || 'custom'
+        return `<div class="uiext-ops-draft-row" data-ref="${esc(ref)}">
+          <div class="uiext-ops-draft-row__meta">
+            <div><strong>${esc(type)}</strong> ${esc(label)}</div>
+            <div class="uiext-ops-draft-row__ref">${esc(ref)}</div>
+          </div>
+          <button type="button" class="wb-order-draft-card__btn primary" data-confirm-ref="${esc(ref)}">确认派单</button>
+        </div>`
+      }).join('')
+      bar.querySelectorAll('[data-confirm-ref]').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          const ref = btn.getAttribute('data-confirm-ref') || ''
+          if (!ref) return
+          btn.disabled = true
+          btn.textContent = '派单中…'
+          try {
+            const draft = drafts.find((x) => String(x.external_ref) === ref)
+            if (draft) await gatewayJson('POST', '/opsboard/drafts', { draft })
+            const out = await gatewayJson('POST', `/opsboard/drafts/${encodeURIComponent(ref)}/confirm`, {})
+            const deduped = out?.result?.deduped
+            btn.textContent = deduped ? '已派过' : '已派单'
+            setTimeout(render, 600)
+          } catch (err) {
+            btn.disabled = false
+            btn.textContent = '确认派单'
+            alert(err?.message || String(err))
+          }
+        })
+      })
+    } catch (err) {
+      bar.innerHTML = `<div class="uiext-ops-draft-bar__title">待确认派单</div><div class="uiext-ops-draft-bar__empty">加载失败：${esc(String(err?.message || err))}</div>`
+    }
+  }
+  await render()
+}
+
 function paintFrame(body, { title, entry, sandbox }) {
   const skelHtml = body.querySelector('#uiext-shell-skeleton')?.outerHTML || ''
   body.innerHTML = `
@@ -352,6 +415,7 @@ async function mountFrame(page, id) {
     }
 
     hideSkeleton(page)
+    await mountOpsDraftBar(page, id)
 
     if (_poll) clearInterval(_poll)
     _poll = setInterval(async () => {
