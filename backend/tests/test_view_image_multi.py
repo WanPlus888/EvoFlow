@@ -12,6 +12,7 @@ from langchain_core.messages import ToolMessage
 from langgraph.types import Command
 from PIL import Image
 
+from evoflow.agents.middlewares.view_image_middleware import ViewImageMiddleware
 from evoflow.tools.builtins.view_image_tool import (
     VIEW_IMAGE_MAX_REFS,
     normalize_image_path_args,
@@ -80,6 +81,50 @@ def test_format_vision_batch_includes_load_errors():
     assert payload["count"] == 2
     assert payload["analysis"] == "ok"
     assert payload["load_errors"][0]["image_ref"] == "/c.png"
+
+
+def test_workbench_image_ref_stages_without_persisting_a_local_path():
+    ref = "workbench-image://rec_1/0/IMG-123"
+    runtime = _runtime()
+    with patch(
+        "evoflow.tools.builtins.view_image_tool.decide_view_image_route",
+        return_value="native",
+    ):
+        result = view_image_tool.func(runtime=runtime, image_path=ref, tool_call_id="workbench-native")
+    assert isinstance(result, Command)
+    assert result.update["viewed_images"][ref]["path"] == ref
+    assert result.update["viewed_images"][ref]["is_remote"] is True
+
+
+def test_native_preview_loads_workbench_bytes_without_local_file(monkeypatch):
+    ref = "workbench-image://rec_1/0/IMG-123"
+    monkeypatch.setattr(
+        "evoflow.tools.builtins.workbench_image_access.read_workbench_image_ref",
+        lambda value: (_png_bytes(), "image/png") if value == ref else pytest.fail("wrong ref"),
+    )
+    middleware = ViewImageMiddleware()
+    with patch.object(
+        middleware, "_load_staged_image_bytes", wraps=middleware._load_staged_image_bytes
+    ):
+        loaded = middleware._load_staged_image_bytes(ref, {"path": ref, "mime_type": "image/png", "is_remote": True})
+    assert loaded is not None
+    assert loaded[1] == "image/png"
+
+
+def test_proactive_view_image_only_accepts_workbench_record_refs(tmp_path: Path):
+    path = tmp_path / "private.png"
+    path.write_bytes(_png_bytes())
+    runtime = _runtime()
+    runtime.context = {"triggered_by": "proactive_engine"}
+    result = view_image_tool.func(runtime=runtime, image_path=str(path), tool_call_id="duty-private")
+    assert isinstance(result, str)
+    assert "workbench-image 引用" in result
+
+    with patch("evoflow.tools.builtins.view_image_tool.decide_view_image_route", return_value="native"):
+        staged = view_image_tool.func(runtime=runtime, image_path="workbench-image://rec_1/0/IMG-1",
+                                      tool_call_id="duty-workbench")
+    assert isinstance(staged, Command)
+    assert staged.update["viewed_images"]["workbench-image://rec_1/0/IMG-1"]["path"] == "workbench-image://rec_1/0/IMG-1"
 
 
 def test_view_image_rejects_over_max():

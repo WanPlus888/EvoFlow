@@ -298,6 +298,19 @@ def _prepare_one_ref(
     ref: str,
     route: str,
 ) -> dict[str, Any]:
+    from evoflow.tools.builtins.workbench_image_access import parse_workbench_image_ref, read_workbench_image_ref
+
+    if parse_workbench_image_ref(ref) is not None:
+        if route == "native":
+            cached = _already_native_viewed(runtime, ref)
+            return {"kind": "native", "image_ref": ref,
+                    "staged": {"path": ref, "mime_type": "image/png", "is_remote": True},
+                    "image_size_bytes": 0, "cached": cached}
+        try:
+            img_bytes, mime_type = read_workbench_image_ref(ref)
+        except Exception as exc:
+            return {"error": f"Workbench image preview unavailable ({type(exc).__name__})"}
+        return {"kind": "text", "image_ref": ref, "img_bytes": img_bytes, "mime_type": mime_type}
     if is_http_image_ref(ref):
         return _prepare_remote_native_or_bytes(runtime=runtime, image_url=ref, route=route)
 
@@ -511,12 +524,26 @@ def run_view_image_refs(
     """
     if not refs:
         return "Error: image_path is required (string path/URL or list of paths/URLs)"
+    try:
+        from evoflow.agents.automation_runtime import runtime_context_dict, triggered_by_proactive
+
+        context = runtime_context_dict(runtime)
+    except Exception:
+        context = {}
+    if triggered_by_proactive(context):
+        from evoflow.tools.builtins.workbench_image_access import parse_workbench_image_ref
+
+        if any(parse_workbench_image_ref(ref) is None for ref in refs):
+            return "Error: 员工预览只允许读取绑定工单的 workbench-image 引用"
     if len(refs) > VIEW_IMAGE_MAX_REFS:
         return f"Error: Too many images ({len(refs)}); max is {VIEW_IMAGE_MAX_REFS} per call"
     logger.info("[视觉识图:view_image] 收到请求 count=%s path=%r", len(refs), refs if len(refs) > 1 else refs[0])
 
     if len(refs) == 1:
         ref = refs[0]
+        from evoflow.tools.builtins.workbench_image_access import parse_workbench_image_ref
+        if parse_workbench_image_ref(ref) is not None:
+            return _view_images_batch(runtime=runtime, tool_call_id=tool_call_id, refs=refs)
         snapshot = resolve_browser_snapshot_ref(ref)
         if snapshot is not None:
             logger.info("[视觉识图:view_image] browser-snapshot 解析为 %s", snapshot)

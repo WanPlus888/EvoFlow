@@ -7,6 +7,7 @@ agent's tools", **not** the global ``get_available_tools()`` dump.
 from __future__ import annotations
 
 import logging
+from collections.abc import Iterable
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -84,6 +85,16 @@ def _session_agent_mode_catalog(session_key: str, session_mode: str | None) -> l
     # Empty intersection (misconfigured agent): still scope to that agent id's mode catalog.
     return _agent_mode_catalog_for_agent(resolve_session_agent_id(sk), session_mode)
 
+
+def _drop_workbench_tools(names: Iterable[str]) -> list[str]:
+    """工作台工具按岗发放：继承得到的目录一律剥离（未授权默认拒绝）。
+
+    显式白名单（worker_profile.tools / AgentConfig.tools / SubagentConfig.tools）
+    不经过本函数，授权岗位不受影响。
+    """
+    from evoflow.tools.builtins.workbench_tools import WORKBENCH_TOOL_NAMES
+
+    return [n for n in names if n not in WORKBENCH_TOOL_NAMES]
 
 def _intersect_catalog(
     names: list[str],
@@ -305,13 +316,18 @@ def resolve_worker_tool_allowlist(
     4. ``base_subagent`` AgentConfig.tools
     5. Parent session agent ∩ worker execution mode (bound∪deferred)
 
+    工作台工具（``workbench_*``）属岗位专属：仅 1-4 的显式白名单可授予；
+    第 5 级继承与最终兜底一律剥离（未授权角色默认拒绝，不随目录大礼包发放）。
+
     After the above, MCP tools from ``worker_profile.mcp_servers`` (when set) or the
     assignee/base agent's ``mcp_servers`` are mounted (lead ``mount_agent_mcp_tools`` parity).
     """
     allowed = {str(n).strip() for n in catalog_names if str(n or "").strip()}
     mcp_agent = str(assignee_agent_code or "").strip() or str(base_subagent or "").strip()
 
-    def _finish(out: list[str], *, source: str) -> list[str]:
+    def _finish(out: list[str], *, source: str, strip_workbench: bool = False) -> list[str]:
+        if strip_workbench:
+            out = _drop_workbench_tools(out)
         mounted = _with_agent_mcp_tools(
             out,
             agent_code=mcp_agent,
@@ -368,7 +384,7 @@ def resolve_worker_tool_allowlist(
 
         out = _intersect_catalog(list(bound_tools_for_session_mode("agent")), allowed)
         source = "agent-mode-bound-fallback"
-    return _finish(out, source=source)
+    return _finish(out, source=source, strip_workbench=True)
 
 
 def session_tool_context_from_runtime(runtime: Any | None) -> tuple[str | None, str | None]:

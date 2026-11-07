@@ -620,6 +620,21 @@ GitHub Release 正文见 `scripts/maintainer/windows/release-notes/PRODUCT-NOTES
 
 ### Added
 
+- **岗位白名单（套图 / 视频 / 客服对照）**：`workbench_*` 工具仅由岗位 `AgentConfig.tools` 显式勾选后发放；worker 继承与会话绑定双路径 fail-closed，未授权角色默认剥离
+- **一句话工单草稿 `draft_workbench_order`**：把用户一句话解析为结构化工单草稿（JSON），只出草稿、不调派单接口、不扣费；缺字段时 `needs_confirm`
+- **Gateway 工作台员工代理**：`/api/opsboard/worker/*` 经本机 Gateway 代理商品档案 / 套图 / 短视频提交与状态；预览走 `/api/opsboard/image-preview`
+- **工作台图片引用**：`workbench-image://` 不落盘到 EvoFlow；对话内联预览经 Gateway 拉取
+
+### Changed
+
+- 运营场景急切工具表纳入 `draft_workbench_order` 与岗位工作台工具
+- 工作台代理登录校验管理员角色后才放行 worker 工具
+
+### Notes
+
+- 本版不上公仓自动更新；本机 Mac 覆盖安装即可。草稿确认后的真派单仍由工单台 / 后续切片承担。
+
+
 - **子代理流式输出侧栏**：子任务工具卡可点开右侧面板，轮询查看全量流式 transcript（执行中贴底跟读）
 - **工具卡内联媒体**：图片 / 视频 / 音频产物在工具卡内直接预览（大文件走 serve-file，不塞 base64）
 - **内嵌浏览器软解耦**：宿主持有浏览器窗口；右侧面板只管显示与用户操作，减少多会话抢主控冲突

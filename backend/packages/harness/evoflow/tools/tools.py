@@ -190,6 +190,16 @@ def get_builtin_tools() -> tuple[BaseTool, ...]:
     from evoflow.tools.builtins.subtask_work_checklist_tool import checklist_tool
     from evoflow.tools.builtins.supervisor_tool import supervisor_tool
     from evoflow.tools.builtins.tasks_tool import tasks_tool
+    from evoflow.tools.builtins.workbench_order_draft_tool import draft_workbench_order
+    from evoflow.tools.builtins.workbench_tools import (
+        workbench_image_status,
+        workbench_image_submit,
+        workbench_products_list,
+        workbench_video_options,
+        workbench_video_status,
+        workbench_video_submit,
+    )
+
     # from evoflow.tools.builtins.todo_tool import todo_tool  # retired — 会话内清单由 TodoMiddleware 的 todo_write 提供（zcode TodoWrite 对齐）
     # from evoflow.tools.builtins.view_image_tool import view_image_tool  # retired — 查图已并入 read（图片引用在 read 内分发），旧配置名经 tool_aliases 映射到 read
 

@@ -163,6 +163,18 @@ class ViewImageMiddleware(AgentMiddleware[ViewImageMiddlewareState]):
         return tool_call_ids.issubset(completed_tool_ids)
 
     def _load_staged_image_bytes(self, image_ref: str, image_data: ViewedImageData) -> tuple[bytes, str] | None:
+        from evoflow.tools.builtins.workbench_image_access import parse_workbench_image_ref, read_workbench_image_ref
+
+        if parse_workbench_image_ref(image_ref) is not None:
+            try:
+                raw_bytes, mime = read_workbench_image_ref(image_ref)
+            except Exception as exc:
+                logger.warning("[ViewImageMiddleware] workbench image fetch failed ref=%r error=%s",
+                               image_ref, type(exc).__name__)
+                return None
+            return prepare_image_bytes_for_native(
+                raw_bytes, mime, max_base64_bytes=MODEL_INJECT_MAX_BASE64_BYTES)
+
         is_remote = bool(image_data.get("is_remote")) or is_http_image_ref(image_ref)
         path = str(image_data.get("path") or image_ref or "").strip()
         mime = str(image_data.get("mime_type") or "application/octet-stream")

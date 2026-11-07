@@ -28,6 +28,22 @@ export function stripBrowserSnapshotFileMentions(text) {
 
 const IMAGE_EXT_RE = /\.(jpe?g|png|gif|webp|heic|svg|bmp)(\?|$)/i
 const OUTPUTS_MARKER = 'outputs'
+const WORKBENCH_IMAGE_REF_RE = /^workbench-image:\/\/([A-Za-z0-9_-]{1,100})\/(0|[1-9][0-9]{0,2})\/([A-Za-z0-9][A-Za-z0-9._-]{0,79})$/
+
+export function parseWorkbenchImageRef(value) {
+  const match = WORKBENCH_IMAGE_REF_RE.exec(String(value || '').trim())
+  if (!match) return null
+  return { recordId: match[1], itemIndex: Number(match[2]), externalRef: match[3] }
+}
+
+const LEGACY_WORKBENCH_OUTPUT_RE = /(?:^|\/)outputs\/([A-Za-z0-9_-]{1,100})\/成品\/(\d{2,3})_[^/]+\.(?:png|jpe?g|webp)$/i
+
+export function parseLegacyWorkbenchOutputRef(value) {
+  const path = String(value || '').trim().replace(/\\/g, '/')
+  const match = LEGACY_WORKBENCH_OUTPUT_RE.exec(path)
+  if (!match) return null
+  return { recordId: match[1], itemIndex: Number(match[2]), externalRef: '' }
+}
 
 /** @type {((path: string) => string) | null} */
 let _convertFileSrc = null
@@ -187,6 +203,7 @@ export function normalizeLocalImagePath(raw) {
 export function resolveChatImageSrc(rawPathOrUrl) {
   const u = normalizeLocalImagePath(rawPathOrUrl)
   if (!u) return ''
+  if (parseWorkbenchImageRef(u) || parseLegacyWorkbenchOutputRef(u)) return ''
   if (u.startsWith('data:image/') || /^https?:\/\//i.test(u)) return u
 
   // Screenshot tool results use Gateway paths, not workspace files.

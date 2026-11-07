@@ -4,13 +4,9 @@
   "updateKind": "full",
   "assetKind": "installer",
   "hash": "",
-  "url": "https://ghfast.top/https://github.com/EvovexAI/EvoFlow/releases/download/v1.3.7/EvoFlow_1.3.7_x64-setup.exe",
-  "urlCnMirror": "https://ghfast.top/https://github.com/EvovexAI/EvoFlow/releases/download/v1.3.7/EvoFlow_1.3.7_x64-setup.exe",
-  "urlGitee": "https://gitee.com/evovexai/EvoFlow/releases/download/v1.3.7/EvoFlow_1.3.7_x64-setup.exe",
-  "urlGithub": "https://github.com/EvovexAI/EvoFlow/releases/download/v1.3.7/EvoFlow_1.3.7_x64-setup.exe",
+  "url": "https://localhost/evoflow-fork-auto-update-disabled.json",
   "size": 0,
-  "changelog": "**EvoFlow v1.3.7 — 部门群里干完活会出声了**\n\n员工在部门群起的后台任务跑完后，结果自动回执到群里；同时修复子任务失败后流程卡死、会话键被抢、只声明 read 的步骤却跑 bash、不支持 thinking 的模型被厂商 400 等一批问题。会话列表与群聊交互同步紧凑化。覆盖安装即可。",
-  "notes": "**EvoFlow v1.3.7 — 部门群里干完活会出声了**\n\n员工在部门群起的后台任务跑完后，结果自动回执到群里；同时修复子任务失败后流程卡死、会话键被抢、只声明 read 的步骤却跑 bash、不支持 thinking 的模型被厂商 400 等一批问题。会话列表与群聊交互同步紧凑化。覆盖安装即可。",
-  "releasedAt": "",
-  "pub_date": ""
+  "changelog": "电商运营终端（基于官方 v1.3.7 地基）：本机品牌包。自动更新已关闭。",
+  "notes": "updater disabled for brand fork; do not publish fake EvovexAI URLs",
+  "publishedAt": "2026-11-07T00:00:00Z"
 }

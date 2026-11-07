@@ -311,6 +311,36 @@ def _tool_search_enabled() -> bool:
         return False
 
 
+def _explicit_workbench_grants_for_agent(agent_id: str) -> set[str] | None:
+    """岗位显式勾选的工作台工具名；None = 无显式 tools 配置（默认拒绝）。"""
+    try:
+        cfg = load_agent_config(agent_id)
+    except (FileNotFoundError, ValueError):
+        return None
+    except Exception:
+        logger.debug("load_agent_config failed for workbench gate agent=%s", agent_id, exc_info=True)
+        return None
+    if cfg is None or cfg.tools is None:
+        return None
+    return {str(t).strip().lower() for t in cfg.tools if str(t or "").strip()}
+
+
+def _gate_workbench_tools_for_session(names: list[str], session_key: str) -> list[str]:
+    """工作台工具按岗发放：会话解析结果里未授权的 ``workbench_*`` 一律剥离。
+
+    只有会话所属 agent 的 ``AgentConfig.tools`` 显式勾选的工作台工具才放行；
+    无配置 / 配置加载失败均视为未授权（fail-closed），不允许静默继承目录全集。
+    """
+    from evoflow.tools.builtins.workbench_tools import WORKBENCH_TOOL_NAMES
+
+    if not any(n in WORKBENCH_TOOL_NAMES for n in names):
+        return names
+    grants = _explicit_workbench_grants_for_agent(resolve_session_agent_id(session_key))
+    if grants is None:
+        return [n for n in names if n not in WORKBENCH_TOOL_NAMES]
+    return [n for n in names if n not in WORKBENCH_TOOL_NAMES or n in grants]
+
+
 def bound_tools_for_session_agent(session_key: str, mode: str | None) -> list[str]:
     m = normalize_session_mode(mode)
     try:
@@ -325,7 +355,9 @@ def bound_tools_for_session_agent(session_key: str, mode: str | None) -> list[st
 
     agent_tools = resolve_agent_tool_names_for_session(session_key)
     mode_tools = flat_bound_tool_names_for_session_mode(m) if not _tool_search_enabled() else bound_tools_for_session_mode(m)
-    result = _intersect_mode_tools(mode_tools, agent_tools)
+    result = _gate_workbench_tools_for_session(
+        _intersect_mode_tools(mode_tools, agent_tools), session_key
+    )
 
     # DEBUG: 只在 debug 级别打印，且只在 tool_search 启用时才打（避免循环）
     if _tool_search_enabled():
@@ -369,7 +401,9 @@ def deferred_catalog_for_session_agent(session_key: str, mode: str | None) -> li
     m = normalize_session_mode(mode)
     mode_deferred = deferred_catalog_for_session_mode(m)
     agent = resolve_agent_tool_names_for_session(session_key)
-    result = _intersect_mode_tools(mode_deferred, agent)
+    result = _gate_workbench_tools_for_session(
+        _intersect_mode_tools(mode_deferred, agent), session_key
+    )
 
     # DEBUG: deferred 工具加载
     agent_id = resolve_session_agent_id(session_key)

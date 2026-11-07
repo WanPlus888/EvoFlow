@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-  # noqa: UP009
 """电商运营终端 · 工单概览代理（P1 驾驶舱合一，fork 扩展）。
 
 终端首页「生产工单」概览条的数据面：网关服务端代理工作台 /api/opsboard/orders，
@@ -19,6 +19,7 @@ _base = ""
 _user = ""
 _pass = ""
 _token = ""
+_role = ""
 _token_at = 0.0
 _client: httpx.Client | None = None
 
@@ -40,18 +41,32 @@ def _client_get() -> httpx.Client:
 
 
 def _login() -> str:
-    global _token, _token_at
+    global _token, _role, _token_at
     base, user, pw = _conf()
     if not user or not pw:
         raise RuntimeError("未配置 EVOFLOW_WORKBENCH_USER/PASS")
     r = _client_get().post(base + "/api/auth/login",
                            json={"username": user, "password": pw, "remember": True})
     r.raise_for_status()
-    _token = str(r.json().get("token") or "")
+    response = r.json()
+    _token = str(response.get("token") or "")
+    _role = str(response.get("role") or "")
     _token_at = time.time()
     if not _token:
         raise RuntimeError("登录未返回 token")
     return _token
+
+
+def _require_workbench_admin() -> None:
+    if not _token or time.time() - _token_at > 3600:
+        _login()
+    if _role != "admin":
+        raise RuntimeError("工作台代理账号必须是管理员")
+
+
+def _workbench_auth_headers() -> dict[str, str]:
+    _require_workbench_admin()
+    return {"Authorization": f"Bearer {_token}"}
 
 
 def _authed_get(path: str) -> dict:
@@ -67,6 +82,22 @@ def _authed_get(path: str) -> dict:
                               headers={"Authorization": f"Bearer {_token}"})
     r.raise_for_status()
     return r.json()
+
+
+def _authed_post(path: str, payload: dict) -> dict:
+    global _token
+    base, _, _ = _conf()
+    if not _token or time.time() - _token_at > 3600:
+        _login()
+    r = _client_get().post(base + path,
+                           headers={"Authorization": f"Bearer {_token}"}, json=payload)
+    if r.status_code == 401:
+        _login()
+        r = _client_get().post(base + path,
+                               headers={"Authorization": f"Bearer {_token}"}, json=payload)
+    r.raise_for_status()
+    return r.json()
+
 
 
 @router.get("/summary")

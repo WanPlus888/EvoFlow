@@ -178,6 +178,15 @@ SCENARIO_EAGER_TOOL_NAMES: dict[str, tuple[str, ...]] = {
         # "glob",  # retired — 按名查找走 Bash
         "grep",
         "search_code_index",
+        "view_image",
+        "workbench_products_list",
+        "workbench_image_submit",
+        "workbench_image_status",
+        "workbench_video_options",
+        "workbench_video_submit",
+        "workbench_video_status",
+        # 草稿工具（非生产提交工具，确认前不派单）
+        "draft_workbench_order",
     ),
     "plan": PLAN_SCENARIO_EAGER_TOOL_NAMES,
 }

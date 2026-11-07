@@ -56,6 +56,8 @@ export default defineConfig({
       'tests/assistant-display-noise.test.js',
       'tests/chat-normalize.test.js',
       'tests/evo-asset-citation.test.js',
+      'tests/chat-image-src-workbench.test.js',
+      'tests/view-image-inline-preview.test.tsx',
       'tests/chat-cua-display.test.js',
       'tests/node-repl-cua-display.test.js',
       'tests/clarify-preview-resolve.test.js',
