@@ -1496,10 +1496,23 @@ html[data-theme='dark'] .sidebar-logo img {
   flex: 1 1 100%;
   min-width: 0;
 }
+/* 1.4.8：横幅挤行（仿 kb-detail）；工作台 iframe 全幅自持，不吃壳横幅 */
+#app.evopanel-workbench-mode #update-banner,
+#app.evopanel-workbench-mode #gw-banner {
+  display: none !important;
+}
 #app.evopanel-workbench-mode #content {
   flex: 1;
   min-height: 0;
   max-width: none;
+  /* 1.4.8 顶栏裁切修复：.workbench-home-host 是 abs inset:0，包含块必须落到
+   * #content。此前 #content 无 position → 包含块逃到视口，iframe 从 y=0 起、
+   * 顶部被 #tauri-main-chrome（Win 48px / macOS 74px 不透明顶带）盖住，
+   * 工作台自己的 #header/#main-tabs 不可见。 */
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Knowledge detail (Owned KB) — full-screen immersion; ← back to list restores sidebar */

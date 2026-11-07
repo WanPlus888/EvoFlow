@@ -257,6 +257,10 @@
     <div id="main-col">
       <div id="update-banner" class="update-banner update-banner-hidden"></div>
       <div id="gw-banner" class="gw-banner gw-banner-hidden"></div>
+      <!-- 1.4.8 回工作台：#/chat（运营大脑）顶上常驻薄条，显性回程（仅 ChatApp 可见时显示，CSS :has 门控） -->
+      <div id="shell-chat-return-bar" class="shell-chat-return-bar" data-testid="chat-return-workbench">
+        <button type="button" class="shell-chat-return-btn" id="shell-chat-return-btn" data-shell-nav="/workbench-home" data-testid="chat-return-workbench-btn" title="回工作台首页（/workbench-home）">← 回工作台</button>
+      </div>
       <!-- 独立于 #content：路由切换时隐藏而不卸载 ChatApp，保持 SSE 与对话状态 -->
       <div id="chat-persistent-host" hidden></div>
       <main id="content"></main>

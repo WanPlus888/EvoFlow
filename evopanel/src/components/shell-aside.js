@@ -530,6 +530,10 @@ export function initShellAside(el) {
         <span class="react-chat-aside-nav-ic" aria-hidden>${_lucide('clipboardList')}</span>
         <span class="react-chat-aside-nav-label">生产工单</span>
       </button>
+      <button type="button" class="react-chat-aside-nav-item" data-shell-nav="/workbench-home" data-testid="nav-workbench-home" title="回工作台首页（/workbench-home，嵌电商图片工作台）" aria-label="回工作台">
+        <span class="react-chat-aside-nav-ic" aria-hidden>${_lucide('image')}</span>
+        <span class="react-chat-aside-nav-label">回工作台</span>
+      </button>
       <button type="button" class="react-chat-aside-nav-item" data-shell-nav="/tasks" data-premium-nav="tasks" title="任务中心">
         <span class="react-chat-aside-nav-ic" aria-hidden>${_lucide('listTodo')}</span>
         <span class="react-chat-aside-nav-label">任务中心</span>
@@ -577,10 +581,6 @@ export function initShellAside(el) {
           <button type="button" class="react-chat-aside-nav-item" data-shell-nav="/extensions" title="Agent应用">
             <span class="react-chat-aside-nav-ic" aria-hidden>${_lucide('blocks')}</span>
             <span class="react-chat-aside-nav-label">Agent应用</span>
-          </button>
-          <button type="button" class="react-chat-aside-nav-item" data-shell-nav="/workbench-home" data-testid="nav-workbench-home" title="电商图片（工作台首页）">
-            <span class="react-chat-aside-nav-ic" aria-hidden>${_lucide('image')}</span>
-            <span class="react-chat-aside-nav-label">电商图片</span>
           </button>
 
         </div>
