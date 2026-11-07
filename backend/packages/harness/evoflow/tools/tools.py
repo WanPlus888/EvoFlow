@@ -220,6 +220,13 @@ def get_builtin_tools() -> tuple[BaseTool, ...]:
         # todo_tool,  # retired — todo_write (TodoMiddleware) 替代，对齐 zcode
         # stage_set_tool / panel_set — retired; right panel via platform ui.show|hide|update
         fetch_url_tool,
+        workbench_products_list,
+        workbench_image_submit,
+        workbench_image_status,
+        workbench_video_options,
+        workbench_video_submit,
+        workbench_video_status,
+        draft_workbench_order,
         # view_image_tool,  # retired — 查图已并入 read（图片引用在 read 内分发）
         # process_tool,  # retired — ZCode Bash run_in_background + TaskOutput/TaskStop
         # browser_tool,  # unregistered — use the agent-browser skill (CLI/MCP) instead

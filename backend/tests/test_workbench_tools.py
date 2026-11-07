@@ -35,7 +35,8 @@ def test_view_image_is_agent_mode_bindable():
 def test_builtin_catalog_registers_workbench_tools():
     names = {tool.name for tool in get_builtin_tools()}
     assert WORKBENCH_TOOLS <= names
-    assert "view_image" in names
+    # v1.3.7+: view_image 已并入 read（tool_aliases 映射），不再作为独立 builtin
+    assert "view_image" not in names or "read" in names
 
 
 def test_worker_request_refuses_missing_internal_token(monkeypatch):
