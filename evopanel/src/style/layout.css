@@ -1514,6 +1514,11 @@ html[data-theme='dark'] .sidebar-logo img {
   display: flex;
   flex-direction: column;
 }
+/* 1.4.8 续刀：工作台全幅无壳顶带 —— #content 已成为 abs host 包含块，chrome 不再被
+ * 盖住而是变成可见顶空条（macOS 74px 含交通灯让位）；仿 kb-detail 直接藏掉。 */
+#app.evopanel-workbench-mode #tauri-main-chrome {
+  display: none !important;
+}
 
 /* Knowledge detail (Owned KB) — full-screen immersion; ← back to list restores sidebar */
 /* Topbar content is folded into .kv-workspace-bar; hide the redundant chrome */

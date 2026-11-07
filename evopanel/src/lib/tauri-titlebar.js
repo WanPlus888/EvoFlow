@@ -2,6 +2,7 @@
  * 无边框窗口：不在页面顶部单独占一条系统栏。
  * - /chat：窗口按钮在 React 顶栏（ChatApp）内
  * - 知识库详情：窗口按钮在 .kv-workspace-bar 内
+ * - /workbench-home：工作台 iframe 全幅自持顶栏，壳 chrome 直接藏（不留顶空条）
  * - 其它路由：在 #main-col 顶部插入一条与内容同源的细栏（仍算「内容区」）
  * - macOS：改用系统原生标题栏（tauri.macos.conf.json 里 decorations/titleBarStyle:Overlay），
  *   顶栏需为交通灯让出高度，自绘窗口按钮隐藏 —— 由 html.evopanel-macos-titlebar 统一控制
@@ -76,11 +77,18 @@ function syncMainChromeVisibility() {
   const kbDetail =
     typeof document !== 'undefined' &&
     document.getElementById('app')?.classList.contains('evopanel-kb-detail-mode')
-  // 聊天 / 知识库详情顶栏自带窗口钮；应用工作室沉浸时不占顶栏白条。
+  // 工作台首页 iframe 自持顶栏，壳 chrome 只会占位成顶空条（1.4.8 回程问题）
+  const workbench =
+    path === '/workbench-home' ||
+    path === 'workbench-home' ||
+    (typeof document !== 'undefined' &&
+      document.getElementById('app')?.classList.contains('evopanel-workbench-mode'))
+  // 聊天 / 知识库详情 / 工作台首页顶栏自带窗口钮或全幅自持；应用工作室沉浸时不占顶栏白条。
   // Agent 应用（/extensions/:id）复用本 chrome 拖窗，不再另起一条顶栏。
   const hide =
     path === '/chat' ||
     kbDetail ||
+    workbench ||
     /^\/apps\/[^/]+(?:\/(?:run|history))?$/.test(path)
   el.classList.toggle('tauri-main-chrome--hidden', hide)
   el.setAttribute('aria-hidden', hide ? 'true' : 'false')

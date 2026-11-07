@@ -224,6 +224,8 @@ function setWorkbenchShellMode(active) {
   const app = document.getElementById('app')
   if (app) app.classList.toggle('evopanel-workbench-mode', !!active)
   if (active) closeAppSidebarDrawer()
+  // 工作台全幅无壳顶带：进出路由即时藏/显 chrome（对齐 setKnowledgeDetailShellMode）
+  void import('./lib/tauri-titlebar.js').then((m) => m.refreshTauriMainChromeVisibility?.())
 }
 
 /** Agent 应用打开态：不全屏，侧栏收成图标栏（配合 ui-extension-shell 自动折叠） */
