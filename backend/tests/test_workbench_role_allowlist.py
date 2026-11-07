@@ -147,10 +147,18 @@ def test_unconfigured_agent_inherits_no_workbench_tools(fake_agent_configs):
 
 
 def test_worker_profile_explicit_grant_still_works(fake_agent_configs):
-    """显式 worker_profile.tools 是授权面：套图 worker 仍可拿 image_submit。"""
-    out = set(_resolve_worker(None, profile_tools=["read", "workbench_image_submit"]))
+    """显式 worker_profile.tools + 授权岗：套图 worker 仍可拿 image_submit。"""
+    out = set(_resolve_worker("tuantu-op", profile_tools=["read", "workbench_image_submit"]))
     assert {"read", "workbench_image_submit"} <= out
     assert "workbench_video_submit" not in out
+
+
+def test_worker_profile_cannot_grant_workbench_without_agent(fake_agent_configs):
+    """节点声明 workbench_* 但执行者无岗授权 → 剥离（fail-closed）。"""
+    out = set(_resolve_worker(None, profile_tools=["read", "workbench_image_submit"]))
+    assert "read" in out
+    assert "workbench_image_submit" not in out
+    assert not out & WORKBENCH_TOOL_NAMES
 
 
 # ── 会话路径（员工值守/聊天会话绑定）──────────────────────────────

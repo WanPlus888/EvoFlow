@@ -1,12 +1,12 @@
 {
-  "version": "1.4.2",
-  "minAppVersion": "1.4.2",
+  "version": "1.4.3",
+  "minAppVersion": "1.4.3",
   "updateKind": "full",
   "assetKind": "installer",
   "hash": "",
   "url": "https://localhost/evoflow-fork-auto-update-disabled.json",
   "size": 0,
-  "changelog": "电商运营终端 1.4.2：部门群派工条验收 + 自动回执接线（徽标/开群轮询）；明确回执≠工作台扣费派单，draft 仍只出草稿。自动更新关闭。",
+  "changelog": "电商运营终端 1.4.3：节点级工作流能力验收；节点挂 workbench 不得冲开岗位白名单；新增套图→质检 / 套图→视频编排模板。自动更新关闭。",
   "notes": "brand fork; updater disabled; do not publish EvovexAI update URLs",
   "publishedAt": "2026-11-07T00:00:00Z"
 }

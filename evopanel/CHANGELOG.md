@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.4.3] - 2026-11-07
+
+**P1 第三刀：节点级工作流能力**（官方 1.3.4 在 1.3.7 地基上的运营向验收）。
+
+### 本版要点
+
+- **摸底确认**：节点 `skills` / `tools` / `mcp_servers` / `knowledge_vault_ids` / `model` / `thinking_enabled` 与 `project_path` 已随 1.3.7 在库
+- **fail-closed 加固**：节点显式挂 `workbench_*` 时与执行者岗位白名单求交，禁止画布声明冲开 L2
+- **运营模板**：「套图 → 质检」「套图 → 视频编排」可从模板创建，按节点挂能力
+- **列表工作目录**：应用卡片有 `project_path` 时展示截断路径；启动补列路径保留
+
+### 明确未做
+
+- Windows 包；真跟片；关键帧；不 push；不自动覆盖 /Applications；updater 仍关
+
+详见 `tools/branding/P1-node-workflow-capabilities.md`。
+
 ## [1.4.2] - 2026-11-07
 
 **P1 第二刀：部门群派工条 + 自动回执**（在 1.4.1 能力边界之上验收官方 1.3.2 / 1.3.7 能力）。

@@ -96,6 +96,46 @@ def _drop_workbench_tools(names: Iterable[str]) -> list[str]:
 
     return [n for n in names if n not in WORKBENCH_TOOL_NAMES]
 
+
+def _explicit_workbench_grants(agent_code: str | None) -> set[str]:
+    """Return workbench tool names explicitly granted on AgentConfig.tools.
+
+    Missing / unreadable agent config → empty set (fail-closed).
+    """
+    from evoflow.tools.builtins.workbench_tools import WORKBENCH_TOOL_NAMES
+
+    wl = _load_agent_tools_whitelist(agent_code)
+    if wl is None:
+        return set()
+    return {n for n in wl if n in WORKBENCH_TOOL_NAMES}
+
+
+def _cap_workbench_by_agent_grants(names: list[str], agent_code: str | None) -> list[str]:
+    """Keep non-workbench tools as declared; workbench_* must be on the agent.
+
+    Node-level ``tools`` (1.3.4) may pin skills/tools/MCP per step, but must not
+    punch through L2 workbench fail-closed by listing ``workbench_*`` the assignee
+    was never granted.
+    """
+    from evoflow.tools.builtins.workbench_tools import WORKBENCH_TOOL_NAMES
+
+    grants = _explicit_workbench_grants(agent_code)
+    out: list[str] = []
+    dropped: list[str] = []
+    for n in names:
+        if n in WORKBENCH_TOOL_NAMES and n not in grants:
+            dropped.append(n)
+            continue
+        out.append(n)
+    if dropped:
+        logger.info(
+            "worker tools: stripped %d workbench tool(s) not granted to agent=%s: %s",
+            len(dropped),
+            agent_code or "(none)",
+            dropped,
+        )
+    return out
+
 def _intersect_catalog(
     names: list[str],
     catalog_names: set[str],
@@ -316,8 +356,11 @@ def resolve_worker_tool_allowlist(
     4. ``base_subagent`` AgentConfig.tools
     5. Parent session agent ∩ worker execution mode (bound∪deferred)
 
-    工作台工具（``workbench_*``）属岗位专属：仅 1-4 的显式白名单可授予；
-    第 5 级继承与最终兜底一律剥离（未授权角色默认拒绝，不随目录大礼包发放）。
+    工作台工具（``workbench_*``）属岗位专属：
+    - 第 1 级（节点/worker_profile.tools）：非工作台工具按声明挂载；``workbench_*``
+      还须落在执行者（assignee / base）``AgentConfig.tools`` 内，否则剥离。
+    - 第 2–4 级：AgentConfig / SubagentConfig 显式白名单可授予。
+    - 第 5 级继承与最终兜底一律剥离（未授权角色默认拒绝，不随目录大礼包发放）。
 
     After the above, MCP tools from ``worker_profile.mcp_servers`` (when set) or the
     assignee/base agent's ``mcp_servers`` are mounted (lead ``mount_agent_mcp_tools`` parity).
@@ -338,16 +381,19 @@ def resolve_worker_tool_allowlist(
         logger.info("worker tools resolved (%s): %d tool(s)", source, len(mounted))
         return mounted
 
+    assignee = str(assignee_agent_code or "").strip()
+    base = str(base_subagent or "").strip()
+
     if profile_tools is not None:
         # step/worker_profile 显式 tools = 执行白名单：不自动扩族（read 不得带出 bash）。
         # MCP 仍按 mcp_servers 绑定在 _finish 里挂载（与声明 tools 求并集，属显式授权）。
+        # 工作台工具额外与执行者 AgentConfig.tools 求交——节点挂载不得冲开 L2 fail-closed。
         out = _intersect_catalog(list(profile_tools), allowed, augment=False)
+        cap_agent = assignee or base
+        out = _cap_workbench_by_agent_grants(out, cap_agent)
         if out:
             return _finish(out, source=f"profile+mcp:{mcp_agent}")
         logger.warning("worker_profile.tools empty after catalog filter; falling back to agent inheritance")
-
-    assignee = str(assignee_agent_code or "").strip()
-    base = str(base_subagent or "").strip()
     if assignee and assignee != base:
         wl = _load_agent_tools_whitelist(assignee)
         if wl is not None:

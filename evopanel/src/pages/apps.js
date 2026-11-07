@@ -219,8 +219,13 @@ export async function render() {
       const stepN = appStepCount(app)
       const paramN = appParamCount(app)
       // 元信息一行放下：步数/参数 + 更新时间，卡片不再另设底栏，做减法。
+      const wsPath = String(app.project_path || app.plan?.project_path || '').trim()
+      const wsLabel = wsPath
+        ? (wsPath.length > 28 ? `…${wsPath.slice(-27)}` : wsPath)
+        : null
       const metaBits = [
         stepN && paramN ? `${stepN} 步 · ${paramN} 参数` : stepN ? `${stepN} 步` : paramN ? `${paramN} 参数` : null,
+        wsLabel ? `工作目录 ${wsLabel}` : null,
         formatAppTime(app.updated_at || app.created_at) || null,
       ].filter(Boolean)
       const menuArchive = archived
@@ -628,6 +633,72 @@ export async function render() {
             skills: 'md2word,summarize',
             assigned_agent: 'general-purpose',
             depends_on: ['2'],
+          },
+        ],
+      },
+      {
+        id: 'ops-image-qa',
+        name: '套图 → 质检',
+        desc: '套图岗按节点挂工作台出图工具；质检步只用读图，不挂生产提交（演示节点级能力 + fail-closed）',
+        goal: '商品「{{product}}」先出套图，再做视觉质检，输出是否可上架的结论',
+        parameters: [
+          { name: 'product', label: '商品名 / 货号', type: 'text', required: true, description: '要出主图的商品，如「保温杯 500ml」' },
+          { name: 'shot_count', label: '出图张数', type: 'text', required: false, description: '默认 4' },
+        ],
+        steps: [
+          {
+            ref: '1',
+            name: '套图出图',
+            goal: '查询「{{product}}」商品档案，提交套图任务（约 {{shot_count}} 张主图），跟踪到可下载结果',
+            instruction: '只用本步声明的工具。先 workbench_products_list 定位商品，再 workbench_image_submit，最后 workbench_image_status 等到完成。不要调用视频类工具。',
+            assigned_agent: 'tuantu-op',
+            tools: ['read', 'todo', 'workbench_products_list', 'workbench_image_submit', 'workbench_image_status'],
+            skills: [],
+            thinking_enabled: false,
+            depends_on: [],
+          },
+          {
+            ref: '2',
+            name: '质检验收',
+            goal: '查看上一步套图结果，按清晰度 / 主体完整 / 违禁风险给出「通过 / 返工」结论与理由',
+            instruction: '只读图与整理结论，禁止调用任何 workbench_* 生产提交工具。若图不可用，明确写出返工要点。',
+            assigned_agent: 'kefu-op',
+            tools: ['read', 'todo'],
+            skills: ['summarize'],
+            thinking_enabled: true,
+            depends_on: ['1'],
+          },
+        ],
+      },
+      {
+        id: 'ops-image-to-video',
+        name: '套图 → 视频编排',
+        desc: '第一步套图岗挂 image 工具；第二步视频岗挂 video 工具；节点能力互不串岗',
+        goal: '商品「{{product}}」先出主图素材，再编排并提交短视频任务',
+        parameters: [
+          { name: 'product', label: '商品名 / 货号', type: 'text', required: true, description: '要做短视频的商品' },
+          { name: 'duration', label: '目标时长（秒）', type: 'text', required: false, description: '默认 15' },
+        ],
+        steps: [
+          {
+            ref: '1',
+            name: '套图备料',
+            goal: '为「{{product}}」提交套图并拿到可引用的主图结果，供视频步使用',
+            instruction: '只用套图工作台工具完成出图；不要调用 workbench_video_*。',
+            assigned_agent: 'tuantu-op',
+            tools: ['read', 'todo', 'workbench_products_list', 'workbench_image_submit', 'workbench_image_status'],
+            thinking_enabled: false,
+            depends_on: [],
+          },
+          {
+            ref: '2',
+            name: '视频编排提交',
+            goal: '基于上一步主图，查询视频供应商能力后提交约 {{duration}} 秒短视频，并跟踪状态',
+            instruction: '只用视频工作台工具（options/submit/status）。不要调用 workbench_image_submit。',
+            assigned_agent: 'shipin-op',
+            tools: ['read', 'todo', 'workbench_products_list', 'workbench_video_options', 'workbench_video_submit', 'workbench_video_status'],
+            thinking_enabled: false,
+            depends_on: ['1'],
           },
         ],
       },
