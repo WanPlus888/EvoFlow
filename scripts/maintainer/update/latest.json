@@ -1,12 +1,12 @@
 {
-  "version": "1.3.7",
-  "minAppVersion": "1.3.7",
+  "version": "1.4.0",
+  "minAppVersion": "1.4.0",
   "updateKind": "full",
   "assetKind": "installer",
   "hash": "",
   "url": "https://localhost/evoflow-fork-auto-update-disabled.json",
   "size": 0,
-  "changelog": "电商运营终端（基于官方 v1.3.7 地基）：本机品牌包。自动更新已关闭。",
-  "notes": "updater disabled for brand fork; do not publish fake EvovexAI URLs",
+  "changelog": "电商运营终端 1.4.0：基于官方 EvoFlow v1.3.7 地基 + 私有品牌/阶段1–2（岗位白名单、工单草稿、终端一体化）。本版未专项开启能力边界/部门群回执/节点级能力配置。自动更新关闭。",
+  "notes": "brand fork; updater disabled; do not publish EvovexAI update URLs",
   "publishedAt": "2026-11-07T00:00:00Z"
 }

@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.4.0] - 2026-11-07
+
+**Path C**：干净叠官方 **v1.3.7** 地基后重放私有品牌/业务补丁。
+
+### 本版要点
+
+- 基于官方 EvoFlow v1.3.7 稳定性地基（含声明即上限、失败级联等）
+- 保留「电商运营终端」品牌、关闭自动更新、Mac 中文名出包、Gateway 真连入包
+- 保留岗位白名单三岗隔离与 `draft_workbench_order`（草稿不派单不扣费）
+- 保留终端一体化 / SSO vault / 聊天兼容修复
+
+### 明确未做（后置）
+
+- 不专项开启/验收：能力边界、部门群自动回执、节点级能力配置
+- 不做 Windows 包；不 push 任何 remote
+
+详见 `scripts/maintainer/windows/release-notes/PRODUCT-NOTES-1.4.0.md`。
+
+
 ## [Unreleased]
 
 ## [1.3.7] - 2026-11-07
