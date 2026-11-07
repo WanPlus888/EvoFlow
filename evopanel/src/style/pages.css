@@ -20935,3 +20935,18 @@ html.dark .users-pill--enforce {
   font-size: var(--ef-text-sm) ;
   color: var(--accent, #2563eb);
 }
+
+/* 单安装包统一壳 1.4.5：工作台首页（外链 workbench.kll666.cn 全幅承载） */
+.workbench-home-host {
+  position: absolute;
+  inset: 0;
+  display: block;
+  background: var(--bg-primary, #05040f);
+}
+.workbench-home-frame {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+  background: var(--bg-primary, #05040f);
+}

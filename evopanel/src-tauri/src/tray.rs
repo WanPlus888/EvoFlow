@@ -12,6 +12,8 @@ pub const TRAY_ID: &str = "main-tray";
 
 pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
     let show = MenuItemBuilder::with_id("show", "显示主窗口").build(app)?;
+    let open_ops = MenuItemBuilder::with_id("open_ops", "打开运营").build(app)?;
+    let open_workbench_browser = MenuItemBuilder::with_id("open_workbench_browser", "在浏览器打开工作台").build(app)?;
     let resource_manager =
         MenuItemBuilder::with_id("resource_manager", "资源管理器").build(app)?;
     let export_logs = MenuItemBuilder::with_id("export_logs", "导出日志").build(app)?;
@@ -23,6 +25,8 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
         let separator2 = PredefinedMenuItem::separator(app)?;
         MenuBuilder::new(app)
             .item(&show)
+            .item(&open_ops)
+            .item(&open_workbench_browser)
             .item(&resource_manager)
             .item(&export_logs)
             .item(&devtools)
@@ -34,6 +38,8 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
         let separator1 = PredefinedMenuItem::separator(app)?;
         MenuBuilder::new(app)
             .item(&show)
+            .item(&open_ops)
+            .item(&open_workbench_browser)
             .item(&resource_manager)
             .item(&export_logs)
             .item(&separator1)
@@ -72,6 +78,17 @@ fn handle_menu_event(app: &AppHandle, id: &str) {
                 let _ = window.unminimize();
                 let _ = window.set_focus();
             }
+        }
+        "open_ops" => {
+            // 打开运营悬浮窗（always-on-top）；主窗不隐藏。
+            let app2 = app.clone();
+            tauri::async_runtime::spawn(async move {
+                let _ = commands::workbench_shell::workbench_shell_open_ops_float(app2).await;
+            });
+        }
+        "open_workbench_browser" => {
+            // 应急通道：用系统浏览器打开工作台首页（tauri_plugin_shell open）。
+            let _ = commands::workbench_shell::open_workbench_in_browser(app);
         }
         "resource_manager" => {
             // 通知主窗口前端打开遮罩（eval 即可，避免 Emitter trait 未导入）

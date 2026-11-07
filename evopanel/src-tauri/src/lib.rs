@@ -8,7 +8,7 @@ mod voice_hotkey;
 use commands::{
     app_server, assistant, backend, boot_cycle, browser_embed, browser_embed_bridge, config,
     cua_glow_overlay, export_logs, gateway, logs, mcp_market, resource_manager, ui_extensions,
-    update, voice_overlay, wake_kws,
+    update, voice_overlay, wake_kws, workbench_shell,
 };
 /// Windows-only: expose WebView2 CDP commands directly to Python over HTTP invoke.
 #[cfg(target_os = "windows")]
@@ -444,6 +444,9 @@ pub fn run() {
             browser_embed::browser_embed_park,
             browser_embed::browser_embed_close,
             browser_embed_bridge::browser_embed_bridge_response,
+            workbench_shell::workbench_shell_open_ops_float,
+            workbench_shell::workbench_shell_hide_ops_float,
+            workbench_shell::workbench_shell_open_in_browser,
         ])
         .build(tauri::generate_context!())
         .expect("启动 EvoFlow 失败")

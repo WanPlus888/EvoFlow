@@ -25,6 +25,7 @@ pub mod export_logs;
 pub mod resource_manager;
 pub mod voice_overlay;
 pub mod wake_kws;
+pub mod workbench_shell;
 
 /// Per-profile subdirectory under `evoflow_dir()`. Lives next to the per-profile
 /// `evopanel.json`, `backend-runtime.json`, and EVOFLOW_HOME. Multiple profiles may

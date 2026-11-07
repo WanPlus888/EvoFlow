@@ -557,8 +557,10 @@ async function boot() {
   const initialPath = (window.location.hash.slice(1) || '/chat').split('?')[0]
   const authOnlyBoot = !isTauri && isAuthRoute(initialPath)
 
-  setDefaultRoute('/chat')
+  setDefaultRoute('/workbench-home')
   // 先注册所有路由，立即渲染 UI（不等后端检测）
+  // 单安装包统一壳 1.4.5：主窗冷启 = 工作台首页（外链 workbench.kll666.cn）
+  registerRoute('/workbench-home', () => import('./pages/workbench-home.js'))
   // 只使用 React 版本的 ChatApp
   registerRoute('/chat', createChatRouteModule)
   registerRoute('/me', () => import('./pages/mobile-me.js'))
