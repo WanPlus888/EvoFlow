@@ -15,6 +15,12 @@
 - 挂搜（1.4.12）：``web_search`` / ``fetch_url`` 为只读调研（RISK_AUTO），不属
   ``WORKBENCH_TOOL_NAMES``，不走岗位工作台门禁；两 submit 另由 TOOL_RISK_LEVELS
   的 RISK_CONFIRM 确认卡闸住（fail-closed 不变）。
+
+多 Bot 分岗 P0（1.4.13）：本模块三岗种子**原样保留**（1.4.11 选图优选 +
+1.4.12 挂搜描述不动）；P0 专员（运营大脑 Router / ``main-image-op`` 别名岗 /
+工单验收 / 知识沉淀 / 投放盯盘）的注册表与种子见
+``evoflow.collab.ops_specialists``（单一事实源；``main-image-op`` 与
+``tuantu-op`` 工具集一致，别名映射 ``MAIN_IMAGE_OP_ALIAS_OF``）。
 """
 
 from __future__ import annotations

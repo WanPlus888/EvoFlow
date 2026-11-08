@@ -142,6 +142,7 @@ export function renderChatAppView(ctx: ChatAppViewCtx): ReactNode {
     handleCopyMessage,
     handleDeleteWorkspaceGroup,
     handleDispatchEmployee,
+    handleOpsSpecialistHandoff,
     handleEditMessage,
     handleEditPendingSend,
     handleEnhancePrompt,
@@ -1208,6 +1209,7 @@ export function renderChatAppView(ctx: ChatAppViewCtx): ReactNode {
               speechEnabled={false}
               onVoiceTranscribed={undefined}
               onDispatchEmployee={handleDispatchEmployee}
+              onOpsSpecialistHandoff={handleOpsSpecialistHandoff}
               contextUsage={displayContextUsage}
               tokenTotals={headerTokenTotals}
               onManualCompact={handleManualContextCompact}

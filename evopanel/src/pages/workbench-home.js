@@ -20,6 +20,8 @@
  *   ui?: { mode?: 'bot' }
  * }
  * - 无参 ≡ 1.4.9 行为（navigate + ef-from-ops-brain 标记），仅隐式进 bot-mode；
+ *   1.4.13 钉死：无参 / 带 draft / ui.mode:'bot' 一律 enterOpsBotMode + /chat
+ *   （与「冷启默认 Bot 精简面」同一产品默认，不再回落全壳）；
  * - draft 经 sanitizeOpsBrainDraft 校验（字符串 / 剥 HTML / ≤2k）后只预填输入框
  *   （evopanel_pending_ops_bot_draft → ChatApp apply-pending-ops-bot-draft），
  *   禁止自动 submit / 自动调模型 / 自动扣费 / 自动建单；

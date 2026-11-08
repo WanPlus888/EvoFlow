@@ -114,7 +114,9 @@ describe('1.4.10 bot-mode 双态（P0-1 / P0-5）', () => {
 
   it('生命周期：离开 chat 表面自动退出（hashchange sync）；冷启恢复', () => {
     expect(OPS_BOT_MODE).toContain("window.addEventListener('hashchange', sync)")
-    expect(OPS_BOT_MODE).toMatch(/if \(!isChatSurfacePath\(location\.hash\.slice\(1\) \|\| '\/workbench-home'\)\) exitOpsBotMode\(\)/)
+    // 1.4.13：空 hash 兜底统一 /chat（默认 Bot 精简面）；离开 chat 仍自动退出
+    expect(OPS_BOT_MODE).toMatch(/if \(!isChatSurfacePath\(location\.hash\.slice\(1\) \|\| '\/chat'\)\)/)
+    expect(OPS_BOT_MODE).toMatch(/exitOpsBotMode\(\)/)
   })
 
   it('main.js 启动 initOpsBotMode（顶条挂载 + 路由同步）', () => {
@@ -135,7 +137,7 @@ describe('1.4.10 回归：1.4.9 回工作台 / 1.4.8 顶空条不回退', () => 
     )
   })
 
-  it('VERSION == 1.4.10', () => {
-    expect(VERSION).toBe('1.4.10')
+  it('VERSION == 1.4.13（多 Bot 分岗 P0）', () => {
+    expect(VERSION).toBe('1.4.13')
   })
 })

@@ -35,7 +35,7 @@ export type CreateSessionForChatCtx = {
 
 export async function createSessionForChat(
   ctx: CreateSessionForChatCtx,
-  opts?: { workspaceRoot?: string | null },
+  opts?: { workspaceRoot?: string | null; agentCode?: string; title?: string },
 ): Promise<string | null> {
   try {
     const { api } = await import('../../../lib/tauri-api.js')
@@ -47,8 +47,11 @@ export async function createSessionForChat(
       createContext.use_virtual_paths = false
       createContext.workspace_user_pinned = true
     }
-    const row = (await api.chatSessionsCreate('main', {
-      title: '新对话',
+    // 多 Bot 分岗 P0（1.4.13）：默认 'main'；转交卡确认后传专员 code
+    const agentCode = String(opts?.agentCode || '').trim() || 'main'
+    const title = String(opts?.title || '').trim() || '新对话'
+    const row = (await api.chatSessionsCreate(agentCode, {
+      title,
       context: createContext,
       ensureThread: false, // 不阻塞等待 LangGraph 线程；用户发消息时按需创建（已有超时保护）
     })) as ChatSessionRow & { key?: string }

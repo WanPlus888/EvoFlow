@@ -34,6 +34,7 @@ import {
   showVoiceInputOverlay,
 } from '../../lib/background-voice.js'
 import { COMPOSER_SLASH_COMMANDS, getMentionAtCursor } from '../lib/workspace-mention.js'
+import { isOpsSpecialistCode, matchOpsSpecialistMention } from '../../lib/ops-specialists.js'
 import { measureTextareaCaret } from '../lib/textarea-caret.js'
 import { WorkspaceMentionMenu, type MentionFileOption, type MentionEmployeeOption, type MentionOption, type MentionSkillOption, type MentionPluginOption, type MentionCommandOption, isEmployeeOption, isSkillOption, isPluginOption, isCommandOption } from './WorkspaceMentionMenu.js'
 import {
@@ -236,6 +237,7 @@ export const ChatComposer = memo(function ChatComposer({
   speechEnabled,
   onVoiceTranscribed,
   onDispatchEmployee,
+  onOpsSpecialistHandoff,
   contextUsage,
   tokenTotals,
   onManualCompact,
@@ -319,6 +321,12 @@ export const ChatComposer = memo(function ChatComposer({
   onAttachContextFiles?: (entries: ComposePathEntry[]) => void
   /** `@员工名 任务` -> 派发任务给员工。命中时不走 onSend，主聊天不产生消息。 */
   onDispatchEmployee?: (agentCode: string, goal: string) => void | Promise<void>
+  /**
+   * 多 Bot 分岗 P0（1.4.13）：`@专员` → 转交卡（形态 C）。
+   * P0 专员 code 命中时优先于此回调，不走 onDispatchEmployee 巡检派发
+   * （proactiveDispatchTask）；转交只产 handoff 意图，确认后切专员会话。
+   */
+  onOpsSpecialistHandoff?: (code: string, goal: string) => void | Promise<void>
   /** ZCode-style 上下文容量圆环，显示在发送按钮左侧 */
   contextUsage?: import('../lib/context-usage.js').ContextUsageSnapshot | null
   /** Token totals for the context ring panel */
@@ -748,6 +756,44 @@ export const ChatComposer = memo(function ChatComposer({
       return
     }
     if (streaming || sending) return
+
+    // ── @专员 转交路由（多 Bot 分岗 P0 · 1.4.13，形态 C） ──────────
+    // P0 专员（codes/中文名）命中 → 转交卡（handoff），不走 proactiveDispatchTask
+    // 巡检派发；转交只产意图，确认后切专员会话，取消留在运营大脑。
+    if (onOpsSpecialistHandoff) {
+      let specialist: { code: string; goal: string } | null = null
+      if (workspaceMention?.roles && workspaceMention.roles.length) {
+        const dispatch = parseEmployeeMention(t, workspaceMention.roles)
+        if (dispatch && isOpsSpecialistCode(dispatch.agent_code)) {
+          specialist = { code: dispatch.agent_code, goal: dispatch.taskText }
+        }
+      }
+      if (!specialist) {
+        // roles 列表未含专员（未种库）时，按注册表 codes/中文名兜底解析
+        const matched = matchOpsSpecialistMention(t)
+        if (matched) specialist = { code: matched.code, goal: matched.goal }
+      }
+      if (specialist) {
+        const attachments: ChatAttachment[] = []
+        try {
+          for (const f of pendingFiles) {
+            attachments.push(await readFileAsAttachment(f))
+          }
+        } catch (e) {
+          console.warn('[ChatComposer] specialist handoff attachment', e)
+          return
+        }
+        setTextAndNotify('')
+        setPendingFiles([])
+        closeMention()
+        try {
+          await onOpsSpecialistHandoff(specialist.code, specialist.goal)
+        } catch (e) {
+          console.warn('[ChatComposer] specialist handoff failed', e)
+        }
+        return
+      }
+    }
 
     // ── @员工 任务派发路由（方案 A：主聊天不产生消息） ──────────────
     // 文本以 `@岗位名` 开头且命中已注册员工时，走派发而非普通聊天。

@@ -1605,6 +1605,139 @@ html[data-theme='dark'] .sidebar-logo img {
   }
 }
 
+/* ============ 1.4.13 多 Bot 分岗 P0：专员条 + 转交卡 ============ */
+/* 专员条：bot-mode 顶条下方 P0 岗位卡片（克制样式，勿重做驾驶舱） */
+#ops-specialist-strip {
+  display: none;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px 8px;
+  border-bottom: 1px solid var(--border, rgba(0, 0, 0, 0.08));
+  background: var(--bg-secondary, #fff);
+  overflow-x: auto;
+}
+#app.evopanel-bot-mode #ops-specialist-strip {
+  display: flex;
+}
+#app.evopanel-workbench-mode #ops-specialist-strip {
+  display: none !important;
+}
+.ops-specialist-card {
+  display: inline-flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.1));
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+.ops-specialist-card:hover {
+  border-color: var(--accent, #2563eb);
+  background: rgba(37, 99, 235, 0.06);
+}
+.ops-specialist-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary, #111827);
+  white-space: nowrap;
+}
+.ops-specialist-short {
+  font-size: 10.5px;
+  color: var(--text-tertiary, #9ca3af);
+  white-space: nowrap;
+}
+@media (max-width: 780px) {
+  .ops-specialist-short {
+    display: none;
+  }
+}
+
+/* 转交卡（形态 C）：确认/取消两键；只在 bot-mode 露出 */
+#ops-handoff-card {
+  display: none;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 6px;
+  margin: 10px 14px;
+  padding: 10px 12px;
+  border: 1px solid rgba(37, 99, 235, 0.35);
+  border-radius: 10px;
+  background: rgba(37, 99, 235, 0.04);
+}
+#app.evopanel-bot-mode #ops-handoff-card {
+  display: flex;
+}
+#app.evopanel-workbench-mode #ops-handoff-card {
+  display: none !important;
+}
+.ops-handoff-main {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+.ops-handoff-badge {
+  flex: 0 0 auto;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent, #2563eb);
+  background: rgba(37, 99, 235, 0.12);
+  border: 1px solid rgba(37, 99, 235, 0.3);
+}
+.ops-handoff-to {
+  flex: 0 0 auto;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+  white-space: nowrap;
+}
+.ops-handoff-goal {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 12.5px;
+  color: var(--text-secondary, #4b5563);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ops-handoff-note {
+  font-size: 11px;
+  color: var(--text-tertiary, #9ca3af);
+}
+.ops-handoff-actions {
+  display: flex;
+  gap: 8px;
+}
+.ops-handoff-confirm {
+  padding: 4px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--accent, #2563eb);
+  background: var(--accent, #2563eb);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ops-handoff-cancel {
+  padding: 4px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.15));
+  background: transparent;
+  color: var(--text-secondary, #4b5563);
+  font-size: 12px;
+  cursor: pointer;
+}
+.ops-handoff-cancel:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
 /* Knowledge detail (Owned KB) — full-screen immersion; ← back to list restores sidebar */
 /* Topbar content is folded into .kv-workspace-bar; hide the redundant chrome */
 #app.evopanel-kb-detail-mode #tauri-main-chrome {

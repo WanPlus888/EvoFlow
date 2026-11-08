@@ -35,6 +35,13 @@ BUILTIN_AGENT_UI_NAMES: dict[str, str] = {
     "hf-director": "HyperFrames·导演",
     "hf-renderer": "HyperFrames·后期",
     "marketing-social-media-operation": "社媒运营",
+    # 多 Bot 分岗 P0（1.4.13）：专员显示名兜底（种子写入 evoflow_agents 后
+    # 由 list_all_agents 覆盖；此处保证未种库时 UI 名不裸奔）
+    "ops-brain-router": "运营大脑",
+    "main-image-op": "主图·套图专员",
+    "ticket-accept-op": "工单验收专员",
+    "knowledge-deposit-op": "知识沉淀专员",
+    "ad-watch-op": "投放盯盘专员",
 }
 
 _EMPTY_ASSIGNEE = frozenset(

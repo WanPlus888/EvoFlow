@@ -57,6 +57,18 @@ export const TOOL_RISK_LEVELS = {
   draft_workbench_order: RISK_AUTO,
   workbench_image_submit: RISK_CONFIRM,
   workbench_video_submit: RISK_CONFIRM,
+  // 多 Bot 分岗 P0（1.4.13；与 backend TOOL_RISK_LEVELS 同步）：
+  // 专员草稿零副作用 → auto；建议单提交人工复核 → confirm（仍非生产写）。
+  ad_watch_daily_draft: RISK_AUTO,
+  ad_anomaly_card_draft: RISK_AUTO,
+  ad_suggestion_draft_create: RISK_AUTO,
+  ad_suggestion_draft_update: RISK_AUTO,
+  ad_suggestion_draft_list: RISK_AUTO,
+  ad_suggestion_draft_get: RISK_AUTO,
+  ad_suggestion_submit_for_review: RISK_CONFIRM,
+  ticket_accept_note_draft: RISK_AUTO,
+  ticket_todo_draft: RISK_AUTO,
+  team_knowledge_propose_draft: RISK_AUTO,
 }
 
 /** Must stay in sync with backend ``tool_approval_config.tool_requires_approval``. */

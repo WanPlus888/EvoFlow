@@ -557,7 +557,10 @@ async function boot() {
   const initialPath = (window.location.hash.slice(1) || '/chat').split('?')[0]
   const authOnlyBoot = !isTauri && isAuthRoute(initialPath)
 
-  setDefaultRoute('/workbench-home')
+  // 1.4.13 默认 Bot 精简面：冷启/空 hash → /chat + bot-mode（ops-bot-mode.js
+  // initOpsBotMode 冷启默认进入）；全壳/工作台首页仍可经「更多运营能力」与
+  // 侧栏「回工作台」进入（/workbench-home 路由注册保留）
+  setDefaultRoute('/chat')
   // 先注册所有路由，立即渲染 UI（不等后端检测）
   // 单安装包统一壳 1.4.5：主窗冷启 = 工作台首页（外链 workbench.kll666.cn）
   registerRoute('/workbench-home', () => import('./pages/workbench-home.js'))

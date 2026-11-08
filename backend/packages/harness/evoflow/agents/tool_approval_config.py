@@ -91,6 +91,20 @@ TOOL_RISK_LEVELS: dict[str, str] = {
     "draft_workbench_order": RISK_AUTO,
     "workbench_image_submit": RISK_CONFIRM,
     "workbench_video_submit": RISK_CONFIRM,
+    # ── 多 Bot 分岗 P0（1.4.13）：专员草稿 / 投放建议单工具 ──────────
+    # 本地草稿零副作用（不扣费/不真派/零 HTTP 出站）→ auto；
+    # 提交人工复核是「人点确认才动状态」的关键节点 → confirm（Gate），
+    # 但仍只 draft → pending_review，非生产写。
+    "ad_watch_daily_draft": RISK_AUTO,
+    "ad_anomaly_card_draft": RISK_AUTO,
+    "ad_suggestion_draft_create": RISK_AUTO,
+    "ad_suggestion_draft_update": RISK_AUTO,
+    "ad_suggestion_draft_list": RISK_AUTO,
+    "ad_suggestion_draft_get": RISK_AUTO,
+    "ad_suggestion_submit_for_review": RISK_CONFIRM,
+    "ticket_accept_note_draft": RISK_AUTO,
+    "ticket_todo_draft": RISK_AUTO,
+    "team_knowledge_propose_draft": RISK_AUTO,
 }
 
 # Tools that require approval (risk > auto); derived from TOOL_RISK_LEVELS

@@ -2854,6 +2854,87 @@ export function useChatAppController() {
     )
   }, [proactiveRolesDisplay, selectedSessionKey, setRows])
 
+  /**
+   * 多 Bot 分岗 P0（1.4.13）· 形态 C：`@专员` → 转交卡。
+   * - 不走 proactive 巡检派发（该调用仅存在于 @员工旧路径模块）；转交只产 handoff 意图（零扣费零真派）；
+   * - 主会话插标记行（__evf_ops_handoff_v1__）+ 人读行；露出确认/取消卡；
+   * - 确认 → 新建绑定专员 code 的会话并把 goal 预填进输入框（不自动发送）；
+   * - 取消 → 留在运营大脑 Router（插一条取消回执行）。
+   */
+  // createSessionForChat 定义在本组件更下方（TDZ），晚绑定经 ref 取用
+  const createSpecialistSessionRef = useRef<
+    ((opts?: { agentCode?: string; title?: string }) => Promise<string | null>) | null
+  >(null)
+  const handleOpsSpecialistHandoff = useCallback(
+    async (code: string, goal: string) => {
+      const { getOpsSpecialist } = await import('../../../lib/ops-specialists.js')
+      const { buildOpsHandoffCard, opsHandoffCardText, opsHandoffHumanText } = await import(
+        '../../../lib/ops-handoff-card.js'
+      )
+      const sp = getOpsSpecialist(code)
+      const name = sp?.name || code
+      const card = buildOpsHandoffCard({ to: code, goal })
+
+      const appendRows = (extra: DisplayRow[]) => {
+        const sk = String(sessionRef.current || selectedSessionKey || '').trim()
+        if (!sk) return
+        const next = updateSessionRuntimeRows(sk, (r: DisplayRow[]) => [...r, ...extra])
+        if (next) {
+          setRows([...next])
+          rowsRef.current = next
+        }
+      }
+
+      // 主对话留痕：机器标记行（可回放）+ 人读摘要行
+      const now = Date.now()
+      appendRows([
+        { role: 'system', text: opsHandoffCardText(card), timestamp: now },
+        { role: 'assistant', text: opsHandoffHumanText(card, 'pending'), timestamp: now + 1 },
+      ])
+
+      const { showOpsHandoffCard } = await import('../../../components/ops-handoff-card.js')
+      showOpsHandoffCard({
+        to: code,
+        toName: name,
+        goal,
+        onConfirm: () => {
+          void (async () => {
+            try {
+              // 切入专员会话：新建绑定专员 code 的会话；goal 只预填输入框
+              const key = (await createSpecialistSessionRef.current?.({
+                agentCode: code,
+                title: `${name} · 专员会话`,
+              })) || null
+              if (key) {
+                pushComposerText(goal)
+                toast(`已进入「${name}」专员会话`, 'success')
+                const t2 = Date.now()
+                appendRows([
+                  {
+                    role: 'system',
+                    text: opsHandoffHumanText(card, 'confirmed'),
+                    timestamp: t2,
+                  },
+                ])
+              }
+            } catch (e) {
+              console.warn('[ops-handoff] specialist session failed', e)
+              toast(`进入专员会话失败：${String((e as { message?: string })?.message || e || '')}`, 'error')
+            }
+          })()
+        },
+        onCancel: () => {
+          const t2 = Date.now()
+          appendRows([
+            { role: 'system', text: opsHandoffHumanText(card, 'cancelled'), timestamp: t2 },
+          ])
+          toast('已取消转交，继续与运营大脑对话', 'info')
+        },
+      })
+    },
+    [pushComposerText, selectedSessionKey, setRows],
+  )
+
   /** 技能/插件选择（多选弹窗 + sticky） */
   const [shareSessionOpen, setShareSessionOpen] = useState(false)
   /** 顶栏「在资源管理器打开」成组按钮的下拉开合态。 */
@@ -3515,8 +3596,24 @@ export function useChatAppController() {
     } catch {
       /* ignore */
     }
+    // 多 Bot 分岗 P0（1.4.13）：专员条卡片点击 → 只把 `@专员名 ` 写进输入框
+    // （预填转交；无任何发送/扣费/建单链路）
+    const onSpecialistPrefill = (ev: Event) => {
+      const detail = (ev as CustomEvent<{ code?: string; name?: string }>).detail || {}
+      const name = String(detail.name || '').trim()
+      if (!name) return
+      try {
+        pushComposerText(`@${name} `)
+      } catch {
+        /* ignore */
+      }
+    }
+    window.addEventListener('ops-specialist-prefill', onSpecialistPrefill as EventListener)
     // 空依赖数组：只在组件挂载时执行
     // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      window.removeEventListener('ops-specialist-prefill', onSpecialistPrefill as EventListener)
+    }
   }, [])
 
   // ============================================
@@ -5675,6 +5772,8 @@ export function useChatAppController() {
       opts,
     )
   }
+  // 多 Bot 分岗 P0（1.4.13）：转交卡确认后建专员会话（晚绑定 ref，见 handleOpsSpecialistHandoff）
+  createSpecialistSessionRef.current = createSessionForChat
 
   async function ensureChatSessionKey(): Promise<string | null> {
     return ensureChatSessionKeyImpl({
@@ -6484,6 +6583,7 @@ export function useChatAppController() {
     handleCopyMessage,
     handleDeleteWorkspaceGroup,
     handleDispatchEmployee,
+    handleOpsSpecialistHandoff,
     handleEditMessage,
     handleEditPendingSend,
     handleEnhancePrompt,

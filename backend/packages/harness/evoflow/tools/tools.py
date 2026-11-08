@@ -171,7 +171,20 @@ def _filter_sandbox_superseded_for_host_direct(tools: list[BaseTool]) -> list[Ba
 def get_builtin_tools() -> tuple[BaseTool, ...]:
     """Load built-in sandbox tools on first use (avoids eager import of 50+ tool modules)."""
     from evoflow.community.web_fetch.tools import web_fetch_tool as fetch_url_tool
+
+    # 多 Bot 分岗 P0（1.4.13）：专员草稿/建议单工具（纯本地，零投放平台 HTTP；
+    # 刻意不进 WORKBENCH_TOOL_NAMES —— 不走岗位工作台门禁，走 AgentConfig.tools 白名单）
+    from evoflow.tools.builtins.ad_watch_draft_tools import (
+        ad_anomaly_card_draft,
+        ad_suggestion_draft_create,
+        ad_suggestion_draft_get,
+        ad_suggestion_draft_list,
+        ad_suggestion_draft_update,
+        ad_suggestion_submit_for_review,
+        ad_watch_daily_draft,
+    )
     from evoflow.tools.builtins.assets_tool import assets_tool
+
     # from evoflow.tools.builtins.browser_tool import browser_tool  # unregistered — use the agent-browser skill (CLI/MCP)
     from evoflow.tools.builtins.clarification_tool import ask_clarification_tool
     from evoflow.tools.builtins.collab_peer_tools import (
@@ -179,10 +192,17 @@ def get_builtin_tools() -> tuple[BaseTool, ...]:
         peer_reply_tool,
         peer_send_tool,
     )
+    from evoflow.tools.builtins.ops_specialist_draft_tools import (
+        team_knowledge_propose_draft,
+        ticket_accept_note_draft,
+        ticket_todo_draft,
+    )
     from evoflow.tools.builtins.plan_tool import plan_tool
     from evoflow.tools.builtins.platform_tool import platform_tool
+
     # from evoflow.tools.builtins.process_tool import process_tool  # retired — Bash background tasks
     from evoflow.tools.builtins.propose_goal_tool import propose_goal_tool
+
     # from evoflow.tools.builtins.read_lints_tool import read_lints_tool  # retired — 诊断走 Bash（pyright/ruff），对齐 ZCode
     # panel_set / stage_set retired as standalone tool — use platform ui.show / ui.hide
     from evoflow.tools.builtins.subtask_outcome_report_tool import done_tool
@@ -227,6 +247,17 @@ def get_builtin_tools() -> tuple[BaseTool, ...]:
         workbench_video_submit,
         workbench_video_status,
         draft_workbench_order,
+        # 多 Bot 分岗 P0（1.4.13）：投放盯盘白名单 1–6 + 验收/知识草稿
+        ad_watch_daily_draft,
+        ad_anomaly_card_draft,
+        ad_suggestion_draft_create,
+        ad_suggestion_draft_update,
+        ad_suggestion_draft_list,
+        ad_suggestion_draft_get,
+        ad_suggestion_submit_for_review,
+        ticket_accept_note_draft,
+        ticket_todo_draft,
+        team_knowledge_propose_draft,
         # view_image_tool,  # retired — 查图已并入 read（图片引用在 read 内分发）
         # process_tool,  # retired — ZCode Bash run_in_background + TaskOutput/TaskStop
         # browser_tool,  # unregistered — use the agent-browser skill (CLI/MCP) instead

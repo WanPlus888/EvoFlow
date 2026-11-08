@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.4.13] - 2026-11-09
+
+**运营终端多 Bot 分岗 P0：默认进 Bot 精简聊天 + 专员分岗 + 转交卡 + 投放建议草稿 Gate**（形态 C：主 Router + `@专员` / 专员卡片）。
+
+### 本版要点
+
+- **默认 Bot 精简面**（Jennifer 2026-11-09 拍板）：冷启 / 空 hash / 进运营终端默认 `#/chat` + bot-mode（顶条「运营大脑」+ 专员条）；「更多运营能力」仍就地退出回全壳；侧栏「回工作台」与驾驶舱等非 chat 路由不删。退出后写 `ef-ops-bot-exited` 标记，重载尊重用户已退出的选择
+- **P0 五岗专员注册表**（后端 `ops_specialists.py` 单一事实源，幂等种子）：运营大脑 Router（只拆解/转交/工单草稿，无生产工具）、主图·套图专员（`main-image-op` 别名岗，与 `tuantu-op` 同工具集，submit 仍确认卡）、工单验收专员（只有笔记/待办草稿，无关单生产写）、知识沉淀专员（只有 propose 草稿，无自动 accept，confirm 仅 admin）、投放盯盘专员（「可写」⊆ 建议单草稿白名单，零投放平台生产写）。岗位工具白名单 fail-closed 求交；新增专员 = 注册表加种子，不改 Router 主路径
+- **转交卡（形态 C）**：`@专员` 或点专员卡片 → 插转交卡（`__evf_ops_handoff_v1__`，spend_or_write 恒 false）→ 确认切入专员会话（goal 只预填输入框，不自动发送）/ 取消留在运营大脑；主会话留机器标记行 + 摘要回执行。P0 专员**不走** `proactiveDispatchTask` 巡检派发（其它 proactive 员工的旧 @派发路径保留）
+- **投放盯盘「可写」白名单（1–6）**：`ad_watch_daily_draft` / `ad_anomaly_card_draft` / `ad_suggestion_draft_create|update|list|get` 全部纯本地草稿（EVOFLOW_HOME 存储，零 HTTP 出站，状态枚举仅 `draft|pending_review|discarded`，刻意无 production/applied）；`ad_suggestion_submit_for_review` 升「需确认」级——人点确认才 `draft → pending_review`，仍不进投放平台。指标快照为占位字段（数据源待接）；测例按符号黑名单断言零命中投放平台生产写
+- **前后端风险表同步**：`ad_*` / `ticket_*` / `team_knowledge_propose_draft` 风险分级前后端一一对应（草稿 auto、提交复核 confirm）
+
+### 参与本次发版
+
+- 全栈开发工程师：专员注册表与种子、投放/验收/知识草稿工具与 Gate、转交卡与专员条、默认 Bot 路由、测例
+
+### 明确未做
+
+- 多专员并行前台「类队友」重 UI、Trigger 定时盯盘推送（P1）；接 dsh / DeepSeek Harness；知识自动 accept；投放生产写；自动扣费/真派
+- 不动工作台仓（zhuhongftam）；不 push；不打 DMG（发版另刀）；不装 /Applications；Windows 包不做；updater 仍关
+
 ## [1.4.12] - 2026-11-08
 
 **运营大脑能力扩展：提交确认闸 + 岗位挂搜 + 缺口匹配候选**（含 1.4.4–1.4.11 运营大脑线未打包迭代：回工作台入口 / workbench-mode / bot-mode 草稿预填不自动发）。
