@@ -2,6 +2,8 @@
 /**
  * Shell window custom-event listeners. Extracted (P87).
  */
+import { applyPendingOpsBotDraft } from './apply-pending-ops-bot-draft.js'
+
 export type RunShellWindowListenersEffectCtx = Record<string, any>
 
 export function runShellWindowListenersEffect(ctx: RunShellWindowListenersEffectCtx): void | (() => void) {
@@ -11,6 +13,7 @@ export function runShellWindowListenersEffect(ctx: RunShellWindowListenersEffect
     handleOpenHomeRef,
     isChatOverlayDeferActive,
     openCollabExecPanel,
+    pushComposerText,
     reviveAllTurnBusyIfLivePostOpen,
     scheduleBumpRef,
     selectSessionFromShellRef,
@@ -101,6 +104,13 @@ export function runShellWindowListenersEffect(ctx: RunShellWindowListenersEffect
           sessionStorage.removeItem('evopanel_pending_mobile_chat_list')
           setMobileChatPane('list')
         }
+      } catch {
+        /* ignore */
+      }
+      // 1.4.10 运营大脑 bot 预填（P0-3）：已挂载时在此消费 pending 草稿；
+      // 只写输入框（applyPendingOpsBotDraft 内无任何发送/计费/建单链路）
+      try {
+        applyPendingOpsBotDraft(pushComposerText)
       } catch {
         /* ignore */
       }

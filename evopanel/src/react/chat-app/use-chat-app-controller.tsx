@@ -434,6 +434,7 @@ import { ensureChatSessionKey as ensureChatSessionKeyImpl } from './session/ensu
 import { handleVoiceTranscribed as handleVoiceTranscribedImpl } from './composer/handle-voice-transcribed.js'
 import { handleToolApproval as handleToolApprovalImpl } from './session/handle-tool-approval.js'
 import { applyPendingShellSession as applyPendingShellSessionImpl } from './shell/apply-pending-shell-session.js'
+import { applyPendingOpsBotDraft as applyPendingOpsBotDraftImpl } from './shell/apply-pending-ops-bot-draft.js'
 import {
   handleHomeSendEvent,
   handleHomeSelectModelEvent,
@@ -3507,6 +3508,13 @@ export function useChatAppController() {
       reload: (opts) => reload(opts),
       openCollabExecPanel,
     })
+    // 1.4.10 运营大脑 bot 预填（P0-3）：冷挂载补消费——chat-route-shown 事件
+    // 可能早于本 effect 注册；只写输入框，无发送链路
+    try {
+      applyPendingOpsBotDraftImpl(pushComposerText)
+    } catch {
+      /* ignore */
+    }
     // 空依赖数组：只在组件挂载时执行
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -6395,6 +6403,7 @@ export function useChatAppController() {
       handleOpenHomeRef,
       isChatOverlayDeferActive,
       openCollabExecPanel,
+      pushComposerText,
       reviveAllTurnBusyIfLivePostOpen,
       scheduleBumpRef,
       selectSessionFromShellRef,

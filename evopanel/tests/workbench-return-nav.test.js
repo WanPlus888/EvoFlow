@@ -115,7 +115,7 @@ describe('1.4.8 顶空条回归（不回退）：workbench-mode 藏 tauri-main-c
     expect(ROUTER).toMatch(/refreshTauriMainChromeVisibility/)
   })
 
-  it('VERSION == 1.4.9', () => {
-    expect(VERSION).toBe('1.4.9')
+  it('VERSION == 1.4.10', () => {
+    expect(VERSION).toBe('1.4.10')
   })
 })

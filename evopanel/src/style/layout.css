@@ -1520,6 +1520,91 @@ html[data-theme='dark'] .sidebar-logo img {
   display: none !important;
 }
 
+/* ============ 1.4.10 运营大脑 bot-mode（#/chat 表现态，总规划 §5 路径A）============ */
+/* 顶条默认隐藏；进 bot-mode 才露出（ops-bot-mode.js 挂 #app.evopanel-bot-mode） */
+#ops-bot-strip {
+  display: none;
+}
+#app.evopanel-bot-mode #ops-bot-strip {
+  display: flex;
+}
+/* 两态互斥：workbench-mode 下绝不露出 bot 条 */
+#app.evopanel-workbench-mode #ops-bot-strip {
+  display: none !important;
+}
+/* 折叠会话列表等多面板噪音（主列 = 连续对话）；「更多运营能力」退出后恢复 */
+#app.evopanel-bot-mode #shell-chat-panel {
+  display: none !important;
+}
+#ops-bot-strip {
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  padding: 5px 14px;
+  border-bottom: 1px solid var(--border, rgba(0, 0, 0, 0.08));
+  background: var(--bg-secondary, #fff);
+}
+.ops-bot-avatar {
+  display: inline-flex;
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  align-items: center;
+  justify-content: center;
+}
+.ops-bot-id {
+  display: flex;
+  flex: 0 1 auto;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+.ops-bot-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+  white-space: nowrap;
+}
+.ops-bot-sub {
+  font-size: 11.5px;
+  color: var(--text-tertiary, #9ca3af);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ops-bot-urgency {
+  flex: 0 0 auto;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #b45309;
+  background: rgba(245, 158, 11, 0.14);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+.ops-bot-more {
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--accent, #2563eb);
+  background: transparent;
+  color: var(--accent, #2563eb);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ops-bot-more:hover {
+  background: rgba(37, 99, 235, 0.08);
+}
+@media (max-width: 780px) {
+  .ops-bot-sub {
+    display: none;
+  }
+}
+
 /* Knowledge detail (Owned KB) — full-screen immersion; ← back to list restores sidebar */
 /* Topbar content is folded into .kv-workspace-bar; hide the redundant chrome */
 #app.evopanel-kb-detail-mode #tauri-main-chrome {

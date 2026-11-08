@@ -657,6 +657,13 @@ async function boot() {
       } catch (e) {
         console.warn('[boot] initChatBackHint failed', e)
       }
+      // 1.4.10 运营大脑 bot-mode：#/chat 表现态（顶条 + 折叠噪音 + 离开 chat 自动退出）
+      try {
+        const { initOpsBotMode } = await import('./components/ops-bot-mode.js')
+        initOpsBotMode()
+      } catch (e) {
+        console.warn('[boot] initOpsBotMode failed', e)
+      }
       // 窄屏底部导航（宽屏不显示）
       try {
         const { initMobileTabbar } = await import('./components/mobile-tabbar.js')
