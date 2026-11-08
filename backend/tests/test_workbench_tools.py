@@ -82,6 +82,38 @@ def test_image_submit_preserves_idempotency_reference(monkeypatch):
     assert result["id"] == "rec-123"
     assert captured["path"] == "/api/opsboard/worker/images"
     assert captured["payload"]["external_ref"] == "IMG-ORDER-1"
+    # 省略 image_indexes → 不传该键，让网关走自动优选
+    assert "image_indexes" not in captured["payload"]
+
+
+def test_image_submit_explicit_single_index_in_post_body(monkeypatch):
+    captured = {}
+
+    def request(path, *, method="GET", payload=None):
+        captured.update(path=path, payload=payload)
+        return {"ok": True, "id": "rec-124", "selected_indexes": [2],
+                "select_layer": "manual", "select_reason": "用户显式指定档案参考图"}
+
+    monkeypatch.setattr(tools, "_worker_request", request)
+    result = json.loads(tools.workbench_image_submit.func(
+        external_ref="IMG-ORDER-2", product_id="pa_abc123",
+        prompt="商品白底主图清晰展示", image_indexes=[2]))
+    assert captured["payload"]["image_indexes"] == [2]
+    # 网关回传的 selected_* 原样透传，便于 Bot 回显「已选 #n + 理由」
+    assert result["selected_indexes"] == [2]
+    assert result["select_layer"] == "manual"
+
+
+def test_image_submit_rejects_multiple_or_invalid_indexes(monkeypatch):
+    monkeypatch.setattr(tools, "_worker_request", lambda *a, **k: pytest.fail("unexpected request"))
+    multi = json.loads(tools.workbench_image_submit.func(
+        external_ref="IMG-ORDER-3", product_id="pa_abc123",
+        prompt="商品白底主图清晰展示", image_indexes=[2, 3]))
+    assert multi["ok"] is False
+    negative = json.loads(tools.workbench_image_submit.func(
+        external_ref="IMG-ORDER-3", product_id="pa_abc123",
+        prompt="商品白底主图清晰展示", image_indexes=[-1]))
+    assert negative["ok"] is False
 
 
 def test_image_status_sends_external_ref_in_header(monkeypatch):
@@ -108,6 +140,8 @@ def test_video_submit_requires_explicit_workbench_model(monkeypatch):
         provider="工作台默认供应商", model="configured-model")
     assert captured["payload"]["provider"] == "工作台默认供应商"
     assert captured["payload"]["model"] == "configured-model"
+    # 省略 image_indexes → 不传该键，让网关走自动优选（异视角优先）
+    assert "image_indexes" not in captured["payload"]
 
 
 def test_http_error_body_is_not_returned(monkeypatch):
@@ -121,3 +155,23 @@ def test_http_error_body_is_not_returned(monkeypatch):
     monkeypatch.setattr(tools.urllib.request, "urlopen", fail)
     result = tools._worker_request("/api/opsboard/worker/products")
     assert result == {"ok": False, "error": "工作台请求失败（HTTP 403）"}
+
+
+def test_video_submit_explicit_indexes_pass_through(monkeypatch):
+    captured = {}
+
+    def request(path, **kwargs):
+        captured.update(kwargs)
+        return {"ok": True, "id": "job-9", "selected_indexes": [1, 2],
+                "select_layer": "manual", "select_reason": "用户显式指定档案参考图"}
+
+    monkeypatch.setattr(tools, "_worker_request", request)
+    result = json.loads(tools.workbench_video_submit.func(
+        external_ref="VID-ORDER-2", product_id="pa_abc123", prompt="商品展示并平滑旋转",
+        provider="工作台默认供应商", model="configured-model", image_indexes=[1, 2]))
+    assert captured["payload"]["image_indexes"] == [1, 2]
+    assert result["selected_indexes"] == [1, 2]  # selected_* 原样透传
+    invalid = json.loads(tools.workbench_video_submit.func(
+        external_ref="VID-ORDER-3", product_id="pa_abc123", prompt="商品展示并平滑旋转",
+        provider="工作台默认供应商", model="configured-model", image_indexes=[0, 1, 2, 3]))
+    assert invalid["ok"] is False

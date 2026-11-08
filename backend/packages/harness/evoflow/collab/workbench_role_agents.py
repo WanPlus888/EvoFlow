@@ -51,8 +51,16 @@ ROLE_PLATFORM_SCOPES: dict[str, dict] = {
 }
 
 _ROLE_SPECS: tuple[tuple[str, str, list[str], str], ...] = (
-    (TUANTU_OP, "套图岗", IMAGE_WORKBENCH_TOOLS, "工作台套图岗：查商品档案、提交并跟踪单图生成。"),
-    (SHIPIN_OP, "视频岗", VIDEO_WORKBENCH_TOOLS, "工作台视频岗：查商品档案与供应商能力、提交并跟踪短视频任务。"),
+    (TUANTU_OP, "套图岗", IMAGE_WORKBENCH_TOOLS,
+     "工作台套图岗：查商品档案、提交并跟踪单图生成。生产前必须 workbench_products_list "
+     "确认商品；省略 image_indexes 由服务端自动优选参考图，提交后用返回的 "
+     "selected_indexes/select_layer/select_reason 回显「已选 #n（理由）」；"
+     "用户说「用第 n 张」时显式传 [n] 覆盖，禁止再自动改掉。"),
+    (SHIPIN_OP, "视频岗", VIDEO_WORKBENCH_TOOLS,
+     "工作台视频岗：查商品档案与供应商能力、提交并跟踪短视频任务。生产前必须 "
+     "workbench_products_list 确认商品；省略 image_indexes 由服务端自动优选"
+     "（异视角优先），提交后回显 selected_indexes/select_layer/select_reason；"
+     "用户指定下标时显式传入覆盖，禁止再自动改掉。"),
     (KEFU_OP, "客服岗", [], "客服岗（对照）：只用基础工具（含草稿），不接触工作台生产工具。"),
 )
 

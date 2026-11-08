@@ -74,6 +74,10 @@ class ImageSubmitInput(BaseModel):
     product_id: str = Field(..., max_length=80, description="工作台商品档案 ID")
     prompt: str = Field(..., min_length=8, max_length=3000, description="已确认的单图生成要求")
     ratio: Literal["1:1", "3:4", "4:3", "9:16", "auto"] = "3:4"
+    image_indexes: list[int] | None = Field(
+        default=None,
+        description="可选；恰好 1 个档案图片下标。省略则服务端按任务自动优选（L0→L1→L2）。"
+                    "用户口头指定第 n 张时传入 [n]，显式指定不会被自动改掉。")
 
 
 class ImageStatusInput(BaseModel):
@@ -90,7 +94,10 @@ class VideoSubmitInput(BaseModel):
     product_id: str = Field(..., max_length=80, description="工作台商品档案 ID")
     provider: str = Field(..., min_length=1, max_length=80, description="从 workbench_video_options 返回的供应商名")
     model: str = Field(..., min_length=1, max_length=120, description="该供应商当前允许的模型 ID")
-    image_indexes: list[int] = Field(default_factory=lambda: [0], description="档案图片下标，最多 3 张")
+    image_indexes: list[int] | None = Field(
+        default=None,
+        description="可选；档案图片下标 1-3 张。可省略以启用服务端自动优选（异视角优先）；"
+                    "显式传入则按用户指定（manual），不会被自动改掉。")
     prompt: str = Field(..., min_length=8, max_length=3000, description="视频画面与运动要求")
     narration: str = Field("", max_length=2000, description="配音文案")
     ratio: str = Field("9:16", max_length=8, description="必须使用所选模型支持的比例")
@@ -104,24 +111,38 @@ class VideoStatusInput(BaseModel):
 
 @tool("workbench_products_list", args_schema=ProductListInput)
 def workbench_products_list(search: str = "") -> str:
-    """只读查询工作台商品档案和可用参考图片，生产前必须先确认商品。"""
+    """只读查询工作台商品档案和可用参考图片（含每张的 view_angle/is_primary）。
+
+    生产前必须先调用本工具确认商品与档案图；提交做图/视频后用返回的
+    selected_indexes/select_layer/select_reason 向用户回显「已选 #n + 理由」。
+    """
     query = urllib.parse.urlencode({"search": search.strip()[:60]})
     return json.dumps(_worker_request("/api/opsboard/worker/products?" + query), ensure_ascii=False)
 
 
 @tool("workbench_image_submit", args_schema=ImageSubmitInput)
 def workbench_image_submit(external_ref: str, product_id: str, prompt: str,
-                           ratio: str = "3:4") -> str:
-    """通过工作台提交商品主图；同一工单重放返回现有记录，不会重复生成。"""
+                           ratio: str = "3:4", image_indexes: list[int] | None = None) -> str:
+    """通过工作台提交商品主图；同一工单重放返回现有记录，不会重复生成。
+
+    省略 image_indexes 时服务端按任务自动优选参考图（L0 规则→L1 元数据→L2
+    Vision，可降级）；用户口头指定第 n 张时传 [n]，显式指定优先于自动。
+    提交结果含 selected_indexes/select_layer/select_reason，须回显给用户。
+    """
     ref, product = external_ref.strip(), product_id.strip()
     if not _REF_RE.fullmatch(ref) or not _PRODUCT_ID_RE.fullmatch(product):
         return json.dumps({"ok": False, "error": "工单号或商品档案 ID 格式无效"}, ensure_ascii=False)
     if ratio not in {"1:1", "3:4", "4:3", "9:16", "auto"}:
         return json.dumps({"ok": False, "error": "图片比例无效"}, ensure_ascii=False)
-    result = _worker_request("/api/opsboard/worker/images", method="POST", payload={
-        "external_ref": ref, "product_id": product,
-        "prompt": prompt.strip(), "ratio": ratio,
-    })
+    payload = {"external_ref": ref, "product_id": product,
+               "prompt": prompt.strip(), "ratio": ratio}
+    if image_indexes is not None:
+        if len(image_indexes) != 1 or any(not isinstance(i, int) or isinstance(i, bool) or i < 0
+                                          for i in image_indexes):
+            return json.dumps({"ok": False, "error": "主图任务必须只选择 1 张有效的档案图片"},
+                              ensure_ascii=False)
+        payload["image_indexes"] = image_indexes  # 省略则不传该键，让网关走自动优选
+    result = _worker_request("/api/opsboard/worker/images", method="POST", payload=payload)
     return json.dumps(result, ensure_ascii=False)
 
 
@@ -151,19 +172,25 @@ def workbench_video_submit(external_ref: str, product_id: str, prompt: str,
                            provider: str, model: str, narration: str = "",
                            image_indexes: list[int] | None = None, ratio: str = "9:16",
                            resolution: str = "720p", duration: int = 8) -> str:
-    """通过工作台提交短视频任务，使用工单号构造稳定提交键防止重复扣费。"""
+    """通过工作台提交短视频任务，使用工单号构造稳定提交键防止重复扣费。
+
+    省略 image_indexes 时服务端自动优选 1-3 张参考图（异视角优先）；用户
+    指定下标时显式传入（manual）。提交结果含 selected_indexes/select_layer/
+    select_reason，须回显给用户。
+    """
     ref, product = external_ref.strip(), product_id.strip()
-    indexes = image_indexes or [0]
     if not _REF_RE.fullmatch(ref) or not _PRODUCT_ID_RE.fullmatch(product):
         return json.dumps({"ok": False, "error": "工单号或商品档案 ID 格式无效"}, ensure_ascii=False)
-    if len(indexes) > 3 or any(not isinstance(i, int) or i < 0 for i in indexes):
-        return json.dumps({"ok": False, "error": "最多选择 3 张有效的档案图片"}, ensure_ascii=False)
-    result = _worker_request("/api/opsboard/worker/videos", method="POST", payload={
-        "external_ref": ref, "product_id": product, "image_indexes": indexes,
-        "prompt": prompt.strip(), "narration": narration.strip(),
-        "provider": provider.strip(), "model": model.strip(),
-        "ratio": ratio, "resolution": resolution, "duration": duration,
-    })
+    payload = {"external_ref": ref, "product_id": product,
+               "prompt": prompt.strip(), "narration": narration.strip(),
+               "provider": provider.strip(), "model": model.strip(),
+               "ratio": ratio, "resolution": resolution, "duration": duration}
+    if image_indexes is not None:
+        if len(image_indexes) > 3 or any(not isinstance(i, int) or isinstance(i, bool) or i < 0
+                                         for i in image_indexes):
+            return json.dumps({"ok": False, "error": "最多选择 3 张有效的档案图片"}, ensure_ascii=False)
+        payload["image_indexes"] = image_indexes  # 省略则不传该键，让网关走自动优选
+    result = _worker_request("/api/opsboard/worker/videos", method="POST", payload=payload)
     return json.dumps(result, ensure_ascii=False)
 
 

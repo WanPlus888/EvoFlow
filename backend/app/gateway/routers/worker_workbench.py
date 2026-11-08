@@ -6,6 +6,7 @@ import asyncio
 import hashlib
 import hmac
 import ipaddress
+import logging
 import os
 import re
 from typing import Any
@@ -14,8 +15,11 @@ from urllib.parse import quote, urlsplit
 import httpx
 from fastapi import APIRouter, Header, HTTPException, Query, Request, Response
 
-from app.gateway.routers import ops_summary
+from app.gateway.routers import archive_ref_pick, ops_summary
 from evoflow.authz.http_guard import require_org_admin
+from evoflow.collab.archive_ref_picker import PickResult, resolve_reference_indexes
+
+logger = logging.getLogger("evoflow.gateway.worker_workbench")
 
 router = APIRouter(prefix="/api/opsboard/worker", tags=["opsboard-worker"])
 preview_router = APIRouter(prefix="/api/opsboard", tags=["opsboard-preview"])
@@ -231,12 +235,11 @@ def _safe_video(job: dict) -> dict[str, Any]:
             "result_key": str(job.get("result_key") or "")}
 
 
-def _asset(product_id: Any, indexes: Any) -> tuple[dict, list[str]]:
+def _asset_row(product_id: Any) -> dict:
+    """按 ID 取档案行（404 若不存在；502 若工作台不可达）。"""
     pid = str(product_id or "").strip()
     if not _ID_RE.fullmatch(pid):
         raise HTTPException(status_code=400, detail="商品档案 ID 格式无效")
-    if not isinstance(indexes, list) or not indexes or len(indexes) > 3:
-        raise HTTPException(status_code=400, detail="请选择 1-3 张档案参考图")
     try:
         data = ops_summary._authed_get("/api/product-assets")
     except Exception as exc:
@@ -245,7 +248,31 @@ def _asset(product_id: Any, indexes: Any) -> tuple[dict, list[str]]:
                   if isinstance(row, dict) and str(row.get("id") or "") == pid), None)
     if not asset:
         raise HTTPException(status_code=404, detail="商品档案不存在")
-    images = asset.get("image_keys") or []
+    return asset
+
+
+def _angle_at(asset: dict, index: int) -> str:
+    """与 products_list 同口径：空标注→other；缺失→unmarked。"""
+    angles = asset.get("view_angles") or []
+    return str(angles[index] or "other") if index < len(angles) else "unmarked"
+
+
+def _images_meta(asset: dict) -> list[dict]:
+    keys = asset.get("image_keys") or []
+    return [{"index": i, "view_angle": _angle_at(asset, i), "is_primary": i == 0,
+             "image_key": str(keys[i] or "")}
+            for i, _ in enumerate(keys[:60])]
+
+
+def _asset(product_id: Any, indexes: Any, asset_row: dict | None = None) -> tuple[dict, list[str]]:
+    pid = str(product_id or "").strip()
+    if not _ID_RE.fullmatch(pid):
+        raise HTTPException(status_code=400, detail="商品档案 ID 格式无效")
+    if not isinstance(indexes, list) or not indexes or len(indexes) > 3:
+        raise HTTPException(status_code=400, detail="请选择 1-3 张档案参考图")
+    if asset_row is None:
+        asset_row = _asset_row(pid)
+    images = asset_row.get("image_keys") or []
     keys: list[str] = []
     for index in indexes:
         if not isinstance(index, int) or isinstance(index, bool) or index < 0 or index >= len(images):
@@ -254,7 +281,43 @@ def _asset(product_id: Any, indexes: Any) -> tuple[dict, list[str]]:
         if not key or key in keys:
             raise HTTPException(status_code=400, detail="参考图下标重复或图片不可用")
         keys.append(key)
-    return asset, keys
+    return asset_row, keys
+
+
+def _resolve_auto_pick(product_id: str, asset_row: dict, *, task_kind: str,
+                       want_count: int, prompt: str) -> PickResult:
+    """自动优选（L0→L1→L2，含总开关/分层开关/预算），同步供 to_thread 调用。
+
+    档案无图 → 400「请先补图」（禁止空提交扣费）；开关与 L1/L2 生产函数
+    见 :mod:`app.gateway.routers.archive_ref_pick`。
+    """
+    if not (asset_row.get("image_keys") or []):
+        raise HTTPException(status_code=400,
+                            detail="商品档案没有参考图，请先在工作台商品档案补图")
+    try:
+        result = resolve_reference_indexes(
+            task_kind=task_kind, images_meta=_images_meta(asset_row),
+            want_count=want_count, prompt=prompt,
+            force_primary=archive_ref_pick.force_primary_enabled(),
+            enable_l1=archive_ref_pick.l1_enabled(),
+            enable_l2=archive_ref_pick.l2_enabled(),
+            vision_fn=archive_ref_pick.cached_vision_fn(str(product_id or ""), task_kind),
+            llm_fn=archive_ref_pick.production_llm_fn,
+            deadline_ms=archive_ref_pick.deadline_ms())
+    except HTTPException:
+        raise
+    except Exception as exc:  # 纯函数兜底：任何未预期异常都不阻断提交，走 forced0
+        logger.warning("archive_ref_pick resolve failed: %s", type(exc).__name__)
+        return PickResult([0], "forced0", f"自动优选异常（{type(exc).__name__}），回退主图 #0")
+    logger.info("archive_ref_pick product=%s task=%s layer=%s indexes=%s reason=%s",
+                product_id, task_kind, result.layer, result.indexes, result.reason)
+    return result
+
+
+def _pick_fields(pick: PickResult) -> dict:
+    """提交响应/日志共用的可观测字段（selected_indexes / select_layer / select_reason）。"""
+    return {"selected_indexes": list(pick.indexes), "select_layer": pick.layer,
+            "select_reason": pick.reason[:200]}
 
 
 @router.get("/products")
@@ -289,15 +352,29 @@ async def products_list(search: str = Query("", max_length=60),
 async def submit_image(payload: dict, x_evoflow_worker_key: str = Header(default="")) -> dict:
     _guard(x_evoflow_worker_key)
     ref = _ref(payload.get("external_ref"))
-    asset, image_keys = _asset(payload.get("product_id"), payload.get("image_indexes", [0]))
-    if len(image_keys) != 1:
-        raise HTTPException(status_code=400, detail="主图任务必须只选择 1 张商品参考图")
     prompt = str(payload.get("prompt") or "").strip()
     if len(prompt) < 8 or len(prompt) > 3000:
         raise HTTPException(status_code=400, detail="生图要求长度须为 8-3000 字")
     ratio = str(payload.get("ratio") or "3:4")
     if ratio not in _IMAGE_RATIOS:
         raise HTTPException(status_code=400, detail="图片比例无效")
+    task_kind = ("image_detail" if str(payload.get("feature") or "").strip() == "detail"
+                 else "image_main")
+    explicit = payload.get("image_indexes")
+    if isinstance(explicit, list) and explicit:
+        # 显式指定（manual）：不跑自动；非法/多下标由 _asset 400，不静默改 0
+        pick = PickResult(list(explicit), "manual", "用户显式指定档案参考图")
+        logger.info("archive_ref_pick product=%s task=%s layer=manual indexes=%s",
+                    payload.get("product_id"), task_kind, pick.indexes)
+        asset, image_keys = _asset(payload.get("product_id"), pick.indexes)
+    else:
+        asset_row = _asset_row(payload.get("product_id"))
+        pick = await asyncio.to_thread(_resolve_auto_pick, payload.get("product_id"),
+                                       asset_row, task_kind=task_kind,
+                                       want_count=1, prompt=prompt)
+        asset, image_keys = _asset(payload.get("product_id"), pick.indexes, asset_row)
+    if len(image_keys) != 1:
+        raise HTTPException(status_code=400, detail="主图任务必须只选择 1 张商品参考图")
     params = {"images": image_keys, "requirement": prompt, "ratio": ratio,
               "reference_mode": "single", "product_id": str(asset.get("knowledge_id") or ""),
               "product_name": str(asset.get("name") or ""),
@@ -330,7 +407,9 @@ async def submit_image(payload: dict, x_evoflow_worker_key: str = Header(default
                 except Exception as exc:
                     raise HTTPException(status_code=502,
                                         detail="原工单仍待执行；提交结果不确定，请先查询状态") from exc
-            return _safe_record(record, deduped=True)
+            replay = _safe_record(record, deduped=True)
+            replay.update(_pick_fields(pick))
+            return replay
         item = {"id": "evoflow-main-1", "label": "商品主图", "type": "main",
                 "prompt": prompt, "status": "pending", "file": "", "error": "",
                 "refs": image_keys, "source_image": image_keys[0], "reference_mode": "single"}
@@ -341,7 +420,7 @@ async def submit_image(payload: dict, x_evoflow_worker_key: str = Header(default
             raise HTTPException(status_code=502,
                                 detail="工单已登记，提交结果不确定；请先查询记录状态，不要创建新工单") from exc
         return {"ok": True, "id": rid, "title": f"{asset.get('name') or '商品'}主图",
-                "status": "queued", "deduped": False, "items": []}
+                "status": "queued", "deduped": False, "items": [], **_pick_fields(pick)}
 
 
 @router.get("/images/{record_id}")
@@ -391,7 +470,6 @@ async def video_options(search: str = Query("", max_length=60),
 async def submit_video(payload: dict, x_evoflow_worker_key: str = Header(default="")) -> dict:
     _guard(x_evoflow_worker_key)
     ref = _ref(payload.get("external_ref"))
-    asset, image_keys = _asset(payload.get("product_id"), payload.get("image_indexes"))
     prompt = str(payload.get("prompt") or "").strip()
     if len(prompt) < 8 or len(prompt) > 3000:
         raise HTTPException(status_code=400, detail="视频要求长度须为 8-3000 字")
@@ -406,11 +484,6 @@ async def submit_video(payload: dict, x_evoflow_worker_key: str = Header(default
     model = str(payload.get("model") or "").strip()
     if not provider or not model:
         raise HTTPException(status_code=400, detail="必须先从工作台模型清单选择供应商和模型")
-    config = {"provider": provider, "model": model,
-              "ratio": ratio, "resolution": str(payload.get("resolution") or "720p"),
-              "duration": duration, "prompt": prompt,
-              "narration": str(payload.get("narration") or "")[:2000],
-              "external_ref": ref, "product_name": str(asset.get("name") or "")}
     submission_key = "evoflow:" + hashlib.sha256(ref.encode("utf-8")).hexdigest()[:48]
     try:
         capabilities = ops_summary._authed_get("/api/video/creator/capabilities")
@@ -422,13 +495,36 @@ async def submit_video(payload: dict, x_evoflow_worker_key: str = Header(default
                           if str(row.get("id") or "") == model), None)
         if not model_row:
             raise HTTPException(status_code=400, detail="所选视频模型当前不可用")
+        resolution = str(payload.get("resolution") or "720p")
         for field, value in (("durations", duration),
                              ("ratios", ratio),
-                             ("resolutions", config["resolution"])):
+                             ("resolutions", resolution)):
             if value not in (model_row.get(field) or []):
                 raise HTTPException(status_code=400, detail=f"当前视频模型不支持所选{field}")
-        if len(image_keys) > int(model_row.get("max_images") or 1):
+        model_cap = max(1, int(model_row.get("max_images") or 1))
+        explicit = payload.get("image_indexes")
+        if isinstance(explicit, list) and explicit:
+            # 显式指定（manual）：不跑自动；非法下标由 _asset 400，不静默改 0
+            pick = PickResult(list(explicit), "manual", "用户显式指定档案参考图")
+            logger.info("archive_ref_pick product=%s task=video layer=manual indexes=%s",
+                        payload.get("product_id"), pick.indexes)
+            asset, image_keys = _asset(payload.get("product_id"), pick.indexes)
+        else:
+            # 省略 indexes → 服务端自动优选（want_count 按模型上限截断）
+            asset_row = _asset_row(payload.get("product_id"))
+            want_count = min(3, model_cap)
+            task_kind = "video_multi" if want_count > 1 else "video_cover"
+            pick = await asyncio.to_thread(_resolve_auto_pick, payload.get("product_id"),
+                                           asset_row, task_kind=task_kind,
+                                           want_count=want_count, prompt=prompt)
+            asset, image_keys = _asset(payload.get("product_id"), pick.indexes, asset_row)
+        if len(image_keys) > model_cap:
             raise HTTPException(status_code=400, detail="参考图数量超过当前视频模型上限")
+        config = {"provider": provider, "model": model,
+                  "ratio": ratio, "resolution": resolution,
+                  "duration": duration, "prompt": prompt,
+                  "narration": str(payload.get("narration") or "")[:2000],
+                  "external_ref": ref, "product_name": str(asset.get("name") or "")}
         data = ops_summary._authed_post("/api/video/creator/jobs", {
             "title": f"{asset.get('name') or '商品'}短视频", "image_keys": image_keys,
             "prompt": prompt, "narration": config["narration"], "config": config,
@@ -441,7 +537,7 @@ async def submit_video(payload: dict, x_evoflow_worker_key: str = Header(default
     except Exception as exc:
         raise HTTPException(status_code=502,
                             detail="短视频提交结果不确定；请先用同一工单号查询，不要生成新提交键") from exc
-    return _safe_video(data)
+    return {**_safe_video(data), **_pick_fields(pick)}
 
 
 @router.get("/videos/{job_id}")
