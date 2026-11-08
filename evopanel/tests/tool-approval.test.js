@@ -13,6 +13,7 @@ import {
   resolveToolApprovalHost,
   toolApprovalInteractiveForItem,
   toolRequiresApproval,
+  toolRiskLevel,
   TOOL_APPROVAL_REPLAY_MARKER,
 } from '../src/lib/tool-approval.js'
 
@@ -63,6 +64,31 @@ describe('tool-approval', () => {
     expect(toolRequiresApproval('process', { action: 'start', command: 'npm test' })).toBe(true)
     expect(toolRequiresApproval('process', { action: 'log', session_id: 'p1' })).toBe(false)
     expect(toolRequiresApproval('process_start')).toBe(true)
+  })
+
+  it('workbench submits require confirm; read-only workbench tools stay auto', () => {
+    // 与 backend TOOL_RISK_LEVELS 同步（运营大脑 1.4.12 能力扩展）
+    expect(toolRiskLevel('workbench_image_submit')).toBe('confirm')
+    expect(toolRiskLevel('workbench_video_submit')).toBe('confirm')
+    expect(toolRequiresApproval('workbench_image_submit')).toBe(true)
+    expect(toolRequiresApproval('workbench_video_submit')).toBe(true)
+    for (const name of [
+      'workbench_products_list',
+      'workbench_image_status',
+      'workbench_video_options',
+      'workbench_video_status',
+      'draft_workbench_order',
+    ]) {
+      expect(toolRiskLevel(name)).toBe('auto')
+      expect(toolRequiresApproval(name)).toBe(false)
+    }
+    // 确认卡首行操作名（花钱/真派级）
+    expect(formatToolApprovalPrimaryLine('workbench_image_submit', 'prod-1 · 主图')).toBe(
+      '提交套图（花钱/真派） · prod-1 · 主图',
+    )
+    expect(formatToolApprovalPrimaryLine('workbench_video_submit', 'prod-1 · video-model-x')).toBe(
+      '提交视频（花钱/真派） · prod-1 · video-model-x',
+    )
   })
 
   it('hides internal approval payloads from chat bubbles', () => {

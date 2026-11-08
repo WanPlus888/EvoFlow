@@ -885,6 +885,11 @@ def _build_middlewares(config: RunnableConfig, model_name: str | None, agent_nam
 
     middlewares.append(RunLatencyWrapMiddleware())
     middlewares.append(LiveActivityToolMiddleware())
+    # 运营大脑缺口匹配（意图→候选旁路，只读提示注入；在 ToolApproval 之前装配，
+    # 候选执行仍走下方审批闸，不绕过）。OPS_BRAIN_GAP_MATCH=0 整段静默。
+    from evoflow.agents.middlewares.ops_brain_gap_match_middleware import OpsBrainGapMatchMiddleware
+
+    middlewares.append(OpsBrainGapMatchMiddleware())
     middlewares.append(ToolApprovalMiddleware())
     # ModelFallbackMiddleware catches model API errors and returns user-friendly AIMessage (before ClarificationMiddleware).
     from evoflow.agents.middlewares.model_fallback_middleware import ModelFallbackMiddleware

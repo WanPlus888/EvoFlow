@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.4.12] - 2026-11-08
+
+**运营大脑能力扩展：提交确认闸 + 岗位挂搜 + 缺口匹配候选**（含 1.4.4–1.4.11 运营大脑线未打包迭代：回工作台入口 / workbench-mode / bot-mode 草稿预填不自动发）。
+
+### 本版要点
+
+- **档案参考图自动优选（含 1.4.11）**：省略 `image_indexes` 时服务端按 L0 规则→L1 元数据→L2 Vision 自动优选参考图；用户口头指定第 n 张时显式传入覆盖；提交结果回显 `selected_indexes` / `select_layer` / `select_reason`
+- **提交确认闸**：`workbench_image_submit` / `workbench_video_submit` 升为「需确认」级（花钱/真派）——未确认停在确认卡、不出站、不扣费；确认卡摘要含商品 / 工单 / 模型 / 时长；取消无副作用可再次发起。只读查询与工单草稿保持免确认
+- **岗位挂搜**：套图岗 / 视频岗新增只读联网检索（`web_search` / `fetch_url`）作执行前调研；客服岗不扩生产工具
+- **缺口匹配**：一句话未被工作台直接覆盖时，在岗位白名单内匹配已注册工具给候选提示；bash / 高危 MCP 永不进候选；无匹配给「转人工 / 派开发」占位说明（拟议方案包另刀，本版不含）。`OPS_BRAIN_GAP_MATCH=0` 可整体关闭
+- **前后端风险表同步**：壳确认卡与后端风险分级一一对应，避免两侧口径漂移
+
+### 参与本次发版
+
+- 全栈开发工程师：提交确认闸、岗位联网调研、缺口匹配候选与风险表同步
+
+### 明确未做
+
+- P2 拟议包（问题/候选方案/拟改文件/风险 schema、自动改产、safe_deploy）——另刀，本版仅占位文案
+- Windows 包；不 push；不自动覆盖 /Applications；updater 仍关
+
 ## [1.4.3] - 2026-11-07
 
 **P1 第三刀：节点级工作流能力**（官方 1.3.4 在 1.3.7 地基上的运营向验收）。

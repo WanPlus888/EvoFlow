@@ -25,6 +25,7 @@ from evoflow.collab.workbench_role_agents import (  # noqa: E402
     IMAGE_WORKBENCH_TOOLS,
     KEFU_OP,
     ROLE_PLATFORM_SCOPES,
+    ROLE_RESEARCH_TOOLS,
     SHIPIN_OP,
     TUANTU_OP,
     VIDEO_WORKBENCH_TOOLS,
@@ -32,7 +33,10 @@ from evoflow.collab.workbench_role_agents import (  # noqa: E402
 )
 from evoflow.collab.worker_tool_allowlist import resolve_worker_tool_allowlist  # noqa: E402
 from evoflow.config.agents_config import load_agent_config, save_agent_config  # noqa: E402
-from evoflow.session_tool_binding.agent_tools import bound_tools_for_session_agent  # noqa: E402
+from evoflow.session_tool_binding.agent_tools import (  # noqa: E402
+    bound_tools_for_session_agent,
+    deferred_catalog_for_session_agent,
+)
 from evoflow.tools.builtins.workbench_tools import WORKBENCH_TOOL_NAMES  # noqa: E402
 
 IMAGE_TOOLS = set(IMAGE_WORKBENCH_TOOLS)
@@ -97,8 +101,9 @@ def test_ensure_seeds_tuantu_and_shipin_tools(isolated_db):
     result = ensure_workbench_role_agents()
 
     assert set(result) == {TUANTU_OP, SHIPIN_OP, KEFU_OP}
-    assert result[TUANTU_OP] == [*BASE_TOOLS, *IMAGE_WORKBENCH_TOOLS]
-    assert result[SHIPIN_OP] == [*BASE_TOOLS, *VIDEO_WORKBENCH_TOOLS]
+    # 1.4.12 挂搜：生产两岗 tools = BASE + ROLE_RESEARCH_TOOLS + 岗位工作台工具
+    assert result[TUANTU_OP] == [*BASE_TOOLS, *ROLE_RESEARCH_TOOLS, *IMAGE_WORKBENCH_TOOLS]
+    assert result[SHIPIN_OP] == [*BASE_TOOLS, *ROLE_RESEARCH_TOOLS, *VIDEO_WORKBENCH_TOOLS]
     assert result[KEFU_OP] == list(BASE_TOOLS)
 
     tuantu = load_agent_config(TUANTU_OP)
@@ -130,6 +135,23 @@ def test_ensure_seeds_tuantu_and_shipin_tools(isolated_db):
     assert shipin.platform_scope.mode == "custom"
     assert kefu.platform_scope is not None
     assert kefu.platform_scope.mode == "none"
+
+
+def test_ensure_seeds_research_tools_on_production_roles_only(isolated_db):
+    """挂搜（口径B）：tuantu/shipin 含 web_search+fetch_url；kefu 不挂。"""
+    ensure_workbench_role_agents()
+
+    for code in (TUANTU_OP, SHIPIN_OP):
+        tools = set(load_agent_config(code).tools or [])
+        assert {"web_search", "fetch_url"} <= tools
+
+    kefu_tools = set(load_agent_config(KEFU_OP).tools or [])
+    assert not ({"web_search", "fetch_url"} & kefu_tools)
+    # 描述补句：可只读检索外网；submit 前确认卡
+    for code in (TUANTU_OP, SHIPIN_OP):
+        desc = str(load_agent_config(code).description or "")
+        assert "检索外网" in desc
+        assert "确认卡" in desc
 
 
 # ── 2) 幂等 ────────────────────────────────────────────────────────────
@@ -185,6 +207,8 @@ def test_seeded_tuantu_worker_allowlist_excludes_video_submit(isolated_db):
     assert "workbench_video_submit" not in out
     assert IMAGE_TOOLS <= out
     assert {"read", "bash"} <= out
+    # 挂搜（1.4.12）：只读调研工具随岗位白名单进 worker 继承（未静默放大 workbench_*）
+    assert {"web_search", "fetch_url"} <= out
 
 
 def test_seeded_shipin_worker_allowlist_excludes_image_submit(isolated_db):
@@ -205,6 +229,9 @@ def test_seeded_shipin_session_binding_excludes_image_submit(isolated_db):
     assert "workbench_image_submit" not in out
     assert VIDEO_TOOLS <= out
     assert {"read", "bash"} <= out
+    # 挂搜（1.4.12）：调研工具经绑定或延迟目录可达（tool_search 开关两种形态都算可达）
+    deferred = set(deferred_catalog_for_session_agent("agent:shipin-op:seed-test", "agent"))
+    assert {"web_search", "fetch_url"} & (out | deferred)
 
 
 def test_seeded_tuantu_session_binding_excludes_video_submit(isolated_db):

@@ -10,8 +10,11 @@
   （``ensure_workbench_role_agents``，或 ``__main__`` 手工入口）。
 - 幂等：已有 agent 覆盖 ``agent_name`` / ``tools`` / ``agent_type`` / ``platform_scope``，
   其它字段（description / model / skills / mcp / tags…）原样保留；不碰无关 agent。
-- ``tools`` 顺序为 ``BASE_TOOLS + 岗位工作台工具``，去重保序。
+- ``tools`` 顺序为 ``BASE_TOOLS + ROLE_RESEARCH_TOOLS(生产两岗) + 岗位工作台工具``，去重保序。
 - ``draft_workbench_order`` 在 BASE_TOOLS（三岗可见），但不在 ``WORKBENCH_TOOL_NAMES``。
+- 挂搜（1.4.12）：``web_search`` / ``fetch_url`` 为只读调研（RISK_AUTO），不属
+  ``WORKBENCH_TOOL_NAMES``，不走岗位工作台门禁；两 submit 另由 TOOL_RISK_LEVELS
+  的 RISK_CONFIRM 确认卡闸住（fail-closed 不变）。
 """
 
 from __future__ import annotations
@@ -28,6 +31,10 @@ DRAFT_WORKBENCH_ORDER_TOOL = "draft_workbench_order"
 
 # 基础工作工具（所有岗位共用；含草稿，不含 workbench_* 生产工具）
 BASE_TOOLS: list[str] = ["read", "bash", "todo", "view_image", DRAFT_WORKBENCH_ORDER_TOOL]
+
+# 岗位挂网搜（运营大脑 1.4.12 能力扩展 · 口径B）：套图/视频岗显式追加只读调研工具，
+# 供执行前外网调研（RISK_AUTO，直接跑）；客服对照岗本刀不挂（保持 BASE）。
+ROLE_RESEARCH_TOOLS: list[str] = ["web_search", "fetch_url"]
 
 # 岗位专属工作台工具（与 WORKBENCH_TOOL_NAMES 子集一致）
 IMAGE_WORKBENCH_TOOLS: list[str] = [
@@ -50,18 +57,33 @@ ROLE_PLATFORM_SCOPES: dict[str, dict] = {
     KEFU_OP: {"mode": "none", "domains": [], "actions": [], "max_risk": "write"},
 }
 
-_ROLE_SPECS: tuple[tuple[str, str, list[str], str], ...] = (
-    (TUANTU_OP, "套图岗", IMAGE_WORKBENCH_TOOLS,
-     "工作台套图岗：查商品档案、提交并跟踪单图生成。生产前必须 workbench_products_list "
-     "确认商品；省略 image_indexes 由服务端自动优选参考图，提交后用返回的 "
-     "selected_indexes/select_layer/select_reason 回显「已选 #n（理由）」；"
-     "用户说「用第 n 张」时显式传 [n] 覆盖，禁止再自动改掉。"),
-    (SHIPIN_OP, "视频岗", VIDEO_WORKBENCH_TOOLS,
-     "工作台视频岗：查商品档案与供应商能力、提交并跟踪短视频任务。生产前必须 "
-     "workbench_products_list 确认商品；省略 image_indexes 由服务端自动优选"
-     "（异视角优先），提交后回显 selected_indexes/select_layer/select_reason；"
-     "用户指定下标时显式传入覆盖，禁止再自动改掉。"),
-    (KEFU_OP, "客服岗", [], "客服岗（对照）：只用基础工具（含草稿），不接触工作台生产工具。"),
+# (code, agent_name, 岗位工作台工具, description, 是否挂只读调研工具)
+# 生产两岗（套图/视频）挂 ROLE_RESEARCH_TOOLS；客服对照岗不挂（拍板口径B）。
+# 1.4.11 档案参考图自动优选 + 1.4.12 挂搜/确认：描述合并两边意图。
+_ROLE_SPECS: tuple[tuple[str, str, list[str], str, bool], ...] = (
+    (
+        TUANTU_OP,
+        "套图岗",
+        IMAGE_WORKBENCH_TOOLS,
+        "工作台套图岗：查商品档案、提交并跟踪单图生成。生产前必须 workbench_products_list "
+        "确认商品；省略 image_indexes 由服务端自动优选参考图，提交后用返回的 "
+        "selected_indexes/select_layer/select_reason 回显「已选 #n（理由）」；"
+        "用户说「用第 n 张」时显式传 [n] 覆盖，禁止再自动改掉。"
+        "可只读检索外网；真正 submit 前会弹确认卡。",
+        True,
+    ),
+    (
+        SHIPIN_OP,
+        "视频岗",
+        VIDEO_WORKBENCH_TOOLS,
+        "工作台视频岗：查商品档案与供应商能力、提交并跟踪短视频任务。生产前必须 "
+        "workbench_products_list 确认商品；省略 image_indexes 由服务端自动优选"
+        "（异视角优先），提交后回显 selected_indexes/select_layer/select_reason；"
+        "用户指定下标时显式传入覆盖，禁止再自动改掉。"
+        "可只读检索外网；真正 submit 前会弹确认卡。",
+        True,
+    ),
+    (KEFU_OP, "客服岗", [], "客服岗（对照）：只用基础工具（含草稿），不接触工作台生产工具。", False),
 )
 
 
@@ -76,8 +98,9 @@ def _dedupe_preserve_order(names: list[str]) -> list[str]:
     return out
 
 
-def _role_tools(role_workbench_tools: list[str]) -> list[str]:
-    return _dedupe_preserve_order([*BASE_TOOLS, *role_workbench_tools])
+def _role_tools(role_workbench_tools: list[str], *, include_research: bool = False) -> list[str]:
+    research = ROLE_RESEARCH_TOOLS if include_research else []
+    return _dedupe_preserve_order([*BASE_TOOLS, *research, *role_workbench_tools])
 
 
 def ensure_workbench_role_agents(*, include_kefu: bool = True) -> dict[str, list[str]]:
@@ -89,7 +112,7 @@ def ensure_workbench_role_agents(*, include_kefu: bool = True) -> dict[str, list
        得到 dict，再覆盖 ``agent_name`` / ``tools`` / ``agent_type="custom"`` /
        ``platform_scope``（L1），其它字段保持；
     b. 若不存在，新建最小 dict；
-    c. ``tools`` 为 ``BASE_TOOLS + 岗位工作台工具``（去重保序）；
+       c. ``tools`` 为 ``BASE_TOOLS (+ ROLE_RESEARCH_TOOLS 生产两岗) + 岗位工作台工具``（去重保序）；
     d. 调用 ``save_agent_config(code, payload)``；
     e. 若存在 ``invalidate_agent_config_cache``，保存后调用它（下一轮生效）。
 
@@ -107,10 +130,10 @@ def ensure_workbench_role_agents(*, include_kefu: bool = True) -> dict[str, list
         invalidate_agent_config_cache = None  # type: ignore[assignment]
 
     out: dict[str, list[str]] = {}
-    for code, agent_name, role_tools, description in _ROLE_SPECS:
+    for code, agent_name, role_tools, description, include_research in _ROLE_SPECS:
         if code == KEFU_OP and not include_kefu:
             continue
-        tools = _role_tools(role_tools)
+        tools = _role_tools(role_tools, include_research=include_research)
         payload: dict[str, Any]
         try:
             cfg = load_agent_config(code)

@@ -128,6 +128,7 @@ def workbench_image_submit(external_ref: str, product_id: str, prompt: str,
     省略 image_indexes 时服务端按任务自动优选参考图（L0 规则→L1 元数据→L2
     Vision，可降级）；用户口头指定第 n 张时传 [n]，显式指定优先于自动。
     提交结果含 selected_indexes/select_layer/select_reason，须回显给用户。
+    提交前会弹出确认卡，经用户确认后才真正出站提交。
     """
     ref, product = external_ref.strip(), product_id.strip()
     if not _REF_RE.fullmatch(ref) or not _PRODUCT_ID_RE.fullmatch(product):
@@ -177,6 +178,7 @@ def workbench_video_submit(external_ref: str, product_id: str, prompt: str,
     省略 image_indexes 时服务端自动优选 1-3 张参考图（异视角优先）；用户
     指定下标时显式传入（manual）。提交结果含 selected_indexes/select_layer/
     select_reason，须回显给用户。
+    提交前会弹出确认卡，经用户确认后才真正出站提交。
     """
     ref, product = external_ref.strip(), product_id.strip()
     if not _REF_RE.fullmatch(ref) or not _PRODUCT_ID_RE.fullmatch(product):

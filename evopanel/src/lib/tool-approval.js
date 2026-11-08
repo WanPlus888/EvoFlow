@@ -48,6 +48,15 @@ export const TOOL_RISK_LEVELS = {
   process: RISK_CONFIRM,
   process_start: RISK_CONFIRM,
   process_kill: RISK_CONFIRM,
+  // 工作台生产工具（运营大脑 1.4.12；与 backend TOOL_RISK_LEVELS 同步）：
+  // 只读查询 auto；两 submit 花钱/真派级 → confirm；草稿零扣费 auto。
+  workbench_products_list: RISK_AUTO,
+  workbench_image_status: RISK_AUTO,
+  workbench_video_options: RISK_AUTO,
+  workbench_video_status: RISK_AUTO,
+  draft_workbench_order: RISK_AUTO,
+  workbench_image_submit: RISK_CONFIRM,
+  workbench_video_submit: RISK_CONFIRM,
 }
 
 /** Must stay in sync with backend ``tool_approval_config.tool_requires_approval``. */
@@ -66,6 +75,14 @@ export const TOOL_APPROVAL_OP_ZH = {
   write: '写入文件',
   replace: '替换文件',
   worker: '并行任务',
+  // 工作台（确认卡首行操作名）
+  workbench_products_list: '查商品档案',
+  workbench_image_status: '查单图状态',
+  workbench_video_options: '查视频能力',
+  workbench_video_status: '查视频状态',
+  workbench_image_submit: '提交套图（花钱/真派）',
+  workbench_video_submit: '提交视频（花钱/真派）',
+  draft_workbench_order: '工单草稿',
 }
 
 /** Worker sub-task action → risk level (sync with backend _WORKER_ACTION_RISK). */

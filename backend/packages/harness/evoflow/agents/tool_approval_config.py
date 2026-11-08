@@ -81,6 +81,16 @@ TOOL_RISK_LEVELS: dict[str, str] = {
     "taskstop": RISK_CONFIRM,
     "process": RISK_CONFIRM,
     "bash": RISK_CONFIRM,  # legacy sandbox-mode shell (same risk as terminal)
+    # ── 工作台生产工具（运营大脑 1.4.12 能力扩展）──────────────────
+    # 只读查询 auto；两 submit 花钱/真派级 → confirm（确认卡闸，取消无副作用）；
+    # 草稿零扣费保持 auto（不误升 confirm）。
+    "workbench_products_list": RISK_AUTO,
+    "workbench_image_status": RISK_AUTO,
+    "workbench_video_options": RISK_AUTO,
+    "workbench_video_status": RISK_AUTO,
+    "draft_workbench_order": RISK_AUTO,
+    "workbench_image_submit": RISK_CONFIRM,
+    "workbench_video_submit": RISK_CONFIRM,
 }
 
 # Tools that require approval (risk > auto); derived from TOOL_RISK_LEVELS
@@ -222,10 +232,21 @@ def _mcp_tool_risk(tool_name: str) -> str | None:
     return RISK_SESSION
 
 
+def _workbench_submit_auto_forced() -> bool:
+    """FORCE_WORKBENCH_SUBMIT_AUTO=1 → 本地调试临时跳过 submit 确认卡。
+
+    仅限本地调试（测例默认关）；**禁止在上产环境开启或在生产文档引导设置**——
+    submit 是花钱/真派级操作，产线必须走确认卡。
+    """
+    return os.environ.get("FORCE_WORKBENCH_SUBMIT_AUTO", "").strip().lower() in {"1", "true", "yes", "on"}
+
+
 def tool_risk_level(tool_name: str, args: dict[str, Any] | None = None) -> str:
     """Return the risk level for a tool: auto | session | confirm."""
     name = canonical_tool_name(str(tool_name or "").strip())
     name = str(name or "").strip().lower()
+    if name in ("workbench_image_submit", "workbench_video_submit") and _workbench_submit_auto_forced():
+        return RISK_AUTO  # 本地调试逃生口（禁上产；见 _workbench_submit_auto_forced）
     if name == "process":
         action = str((args or {}).get("action") or "start").strip().lower()
         if action != "start":
@@ -513,6 +534,28 @@ def summarize_tool_for_approval(tool_name: str, args: dict[str, Any]) -> str:
             preview = content.replace("\n", " ")[:120]
             bits.append(f"摘要={preview}")
         return "; ".join(bits)[:500]
+    if name == "workbench_image_submit":
+        a = args or {}
+        bits = [f"商品={str(a.get('product_id') or '?')}", f"工单={str(a.get('external_ref') or '?')}"]
+        prompt = str(a.get("prompt") or "").replace("\n", " ").strip()
+        if prompt:
+            bits.append(f"要求={prompt[:80]}")
+        if a.get("ratio"):
+            bits.append(f"比例={a.get('ratio')}")
+        return "; ".join(bits)[:400]
+    if name == "workbench_video_submit":
+        a = args or {}
+        bits = [
+            f"商品={str(a.get('product_id') or '?')}",
+            f"供应商={str(a.get('provider') or '?')}",
+            f"模型={str(a.get('model') or '?')}",
+        ]
+        if a.get("duration"):
+            bits.append(f"时长={a.get('duration')}s")
+        prompt = str(a.get("prompt") or "").replace("\n", " ").strip()
+        if prompt:
+            bits.append(f"要求={prompt[:80]}")
+        return "; ".join(bits)[:400]
     if name == "worker":
         tasks = (args or {}).get("tasks")
         if isinstance(tasks, list):
