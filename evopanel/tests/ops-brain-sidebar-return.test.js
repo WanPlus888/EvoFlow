@@ -245,7 +245,7 @@ describe('1.4.14 禁区：零千川生产写符号；VERSION', () => {
     }
   })
 
-  it('VERSION == 1.4.19（改名刀 bump）', () => {
-    expect(VERSION).toBe('1.4.19')
+  it('VERSION == 1.4.20（网关无鉴权硬化刀 bump）', () => {
+    expect(VERSION).toBe('1.4.20')
   })
 })

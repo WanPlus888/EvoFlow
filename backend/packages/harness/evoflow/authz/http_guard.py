@@ -1,7 +1,16 @@
-"""HTTP request guards for resource visibility (anti-IDOR)."""
+"""HTTP request guards for resource visibility (anti-IDOR).
+
+无鉴权本地管理员 bootstrap（单用户安装的「本机 = org-admin」短路）只在
+真本机直连时允许：生产反代（nginx → 127.0.0.1:8012）会让 ``request.client.host``
+恒为 loopback，因此凡携带非 loopback 的 ``X-Forwarded-For`` / ``X-Real-IP``
+即视为公网请求，无凭据一律 401、不放行 org-admin。可用环境变量
+``EVOFLOW_DISABLE_UNAUTH_ADMIN=1`` 强制关闭该 bootstrap（生产 systemd 建议设置）。
+"""
 
 from __future__ import annotations
 
+import ipaddress
+import os
 from typing import Any
 
 from fastapi import HTTPException, Request
@@ -91,11 +100,92 @@ def _has_auth_signals(request: Request | None) -> bool:
     return False
 
 
-def require_org_admin(request: Request | None) -> None:
-    """403 unless caller is org admin (local bootstrap admin counts)."""
-    if not _has_auth_signals(request):
-        # 本地无凭据请求（平台内部桥/本地单用户）→ 管理员，零 DB 依赖。
+def _forwarded_client_hosts(request: Request | None) -> list[str]:
+    """解析 X-Forwarded-For / X-Real-IP；去空白；保留顺序。"""
+    if request is None:
+        return []
+    hosts: list[str] = []
+    try:
+        xff = str(request.headers.get("x-forwarded-for") or "")
+        for part in xff.split(","):
+            part = part.strip()
+            if part:
+                hosts.append(part)
+        real_ip = str(request.headers.get("x-real-ip") or "").strip()
+        if real_ip:
+            hosts.append(real_ip)
+    except Exception:
+        return []
+    return hosts
+
+
+def _is_ip_loopback(host: str) -> bool:
+    """127.0.0.0/8 / ::1 / localhost（与 webui.auth.is_local_request 同口径，
+    经 ipaddress 覆盖整个 127/8 与可能的 [::1] 括号形式）。"""
+    h = str(host or "").strip().lower()
+    if not h:
+        return False
+    if h == "localhost":
+        return True
+    if h.startswith("[") and h.endswith("]"):
+        h = h[1:-1]
+    try:
+        return ipaddress.ip_address(h).is_loopback
+    except ValueError:
+        return False
+
+
+_UNAUTH_ADMIN_DISABLE_VALUES = {"1", "true", "yes", "on"}
+
+
+def is_unauth_admin_bootstrap_allowed(request: Request | None) -> bool:
+    """无鉴权时是否允许「本地单用户 = org-admin」短路。
+
+    全部满足才 True：
+    - 未设 ``EVOFLOW_DISABLE_UNAUTH_ADMIN``（真值集合 1/true/yes/on）
+    - ``request`` 非 None 且直连客户端是 loopback
+    - 无任何转发头，或 X-Forwarded-For / X-Real-IP 中每一个 IP 都是 loopback
+    生产反代必带非 loopback 转发头 → False（公网无鉴权不得 org-admin，
+    审计 2026-11-09：无 JWT DELETE /api/agents/main → 204 / promote-admin → 200）。
+    ``request is None`` → False（非 HTTP 上下文不短路，要求显式传 Request；
+    生产路径测试一律传带转发头的 Request 钉死本行为）。
+    """
+    if os.environ.get("EVOFLOW_DISABLE_UNAUTH_ADMIN", "").strip().lower() in _UNAUTH_ADMIN_DISABLE_VALUES:
+        return False
+    if request is None:
+        return False
+    client = getattr(request, "client", None)
+    if not _is_ip_loopback(str(getattr(client, "host", "") or "")):
+        return False
+    for host in _forwarded_client_hosts(request):
+        if not _is_ip_loopback(host):
+            return False
+    return True
+
+
+def require_authenticated(request: Request | None) -> None:
+    """要求请求携带身份信号，或属真本机单用户 bootstrap；否则 401。
+
+    用于「登录成员即可、不必 admin」的写路径（如创建个人 agent）：
+    无任何身份信号且非本地单用户 bootstrap → 401；有信号（cookie/bearer/
+    principal 头）则放行给后续 ownership 逻辑。与 require_org_admin 的区别
+    是不做 DB admin 校验。
+    """
+    if _has_auth_signals(request):
         return
+    if is_unauth_admin_bootstrap_allowed(request):
+        return
+    raise HTTPException(status_code=401, detail="authentication required")
+
+
+def require_org_admin(request: Request | None) -> None:
+    """401/403 unless caller is org admin (local bootstrap admin counts)."""
+    if not _has_auth_signals(request):
+        # 本地无凭据请求（平台内部桥/本地单用户）→ 仅真本机 bootstrap 保留管理员，
+        # 零 DB 依赖；公网/反代上的无鉴权请求 → 401（壳可区分「未登录」vs「非管理员」）。
+        if is_unauth_admin_bootstrap_allowed(request):
+            return
+        raise HTTPException(status_code=401, detail="authentication required")
     authz = resolve_authz_from_request(request)
     if authz.get("is_admin"):
         return

@@ -742,6 +742,12 @@ async def create_agent_endpoint(http_request: Request, request: AgentCreateReque
     Raises:
         HTTPException: 409 if agent already exists, 422 if name is invalid.
     """
+    from evoflow.authz.http_guard import require_authenticated
+
+    # 无身份信号且非真本机 bootstrap → 401；有 JWT 非 admin 仍允许（个人 scope
+    # 由下方 ownership stamp 落 personal_scope）。公网无鉴权不得建全局 agent。
+    require_authenticated(http_request)
+
     _validate_agent_name(request.agent_code)
     normalized_name = _normalize_agent_name(request.agent_code)
 
@@ -856,10 +862,13 @@ async def update_agent(http_request: Request, name: str, request: AgentUpdateReq
     Raises:
         HTTPException: 404 if agent not found.
     """
-    from evoflow.authz.http_guard import require_agent_visible
+    from evoflow.authz.http_guard import require_agent_visible, require_org_admin
 
     # Special handling for main agent
     if name.lower() == "main":
+        # 组织级默认智能体只允许 org-admin 修改（本刀 1.4.20 拍板：main 必须 org_admin；
+        # 自定义 agent 保持 require_agent_visible + 个人 scope）。
+        require_org_admin(http_request)
         updates = {}
         # Check if field was explicitly provided (not just not None)
         # For optional fields, we need to distinguish between "not provided" and "explicitly set to None"
@@ -1165,7 +1174,12 @@ async def delete_agent(request: Request, name: str):
     """
     import asyncio
 
-    from evoflow.authz.http_guard import require_agent_visible
+    from evoflow.authz.http_guard import require_agent_visible, require_org_admin
+
+    # 一切 DELETE 必须 org_admin：破坏性操作不因 require_agent_visible 对 main 的
+    # 直接放行而漏门（审计 2026-11-09 刀 B：公网无 JWT DELETE /api/agents/main → 204）。
+    # 即便未来放宽 visible，name 归一化为 main 时也必须过 org_admin。
+    require_org_admin(request)
 
     _validate_agent_name(name)
     name = _normalize_agent_name(name)

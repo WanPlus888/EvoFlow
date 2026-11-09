@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.4.20] - 2026-11-09
+
+**网关公网无鉴权硬化**：公网/反代路径上的无 JWT 请求不再回落 org-admin——改模型、删 agent、提权等管理接口无凭据一律 401/403；真本机 sidecar 单用户 bootstrap 保持不变。**远端网关须另行点名部署 backend 文件**（见 `zcode-tasks/_remote_gw_harden_notes.md`），本 tip 未装未推未上产。
+
+### 本版要点
+
+- **根因**（多成员隔离审计 2026-11-09 刀 B）：`http_guard.require_org_admin` 无 cookie/Authorization/`x-evoflow-principal-id` 时直接放行；生产网关只听 `127.0.0.1:8012`，nginx 反代后 `request.client.host` 恒为 loopback，「本机判定」在公网同样成立。于是无 JWT 即 org-admin：`POST /api/models` → 422（已过门）、`DELETE /api/agents/main` → 204、`promote-admin` → 200
+- **信任边界助手**（`authz/http_guard.py`）：`_forwarded_client_hosts`（解析 `X-Forwarded-For`/`X-Real-IP`）+ `_is_ip_loopback`（127/8、::1、localhost）+ `is_unauth_admin_bootstrap_allowed`——无鉴权「本地单用户 = org-admin」短路只在「未设 `EVOFLOW_DISABLE_UNAUTH_ADMIN` + 直连 loopback + 无任何非 loopback 转发头」时成立；`require_org_admin` 无信号且非 bootstrap → **401**（区分「未登录」vs「非管理员」），有信号非 admin → 仍 403
+- **isOrgAdmin 口径**（`authz/context.py`）：`resolve_request_authz` 剥掉「无凭据回落 local-admin」时的管理权——判据是请求是否携带**可解析出身份的凭据**（有效 JWT / principal 调试头），仅「头存在」不算（垃圾 Bearer/cookie 同样回落 local-admin）。local-admin 回落本身保留（本机读 `/api/identity/me` 兼容），只剥 `is_org_admin`，他人会话不再因 is_admin 全开
+- **破坏性 API 显式上门**：`DELETE /api/agents/{name}` 一律 `require_org_admin`（含 main；审计曾无 JWT 删 main → 204）；`PUT /api/agents/main` 必须 org-admin（自定义 agent 保持 visible + 个人 scope）；`POST /api/agents` 新增 `require_authenticated`（无信号且非 bootstrap → 401，有 JWT 非 admin 仍可建个人 agent）；`identity._require_admin` 先过 `require_org_admin` 再 resolve（promote-admin 无 JWT → 401/403）；models 写路径已有门，测例钉死 401
+- **`EVOFLOW_DISABLE_UNAUTH_ADMIN=1`**：强制关闭无鉴权 bootstrap（生产 systemd 建议设置，即便某条代理漏转发头也兜底）；本机 sidecar / `tauri dev` **不要**设
+- **测试**：新增 `backend/tests/test_unauth_admin_harden.py`（56 例：bootstrap 放行 / 反代拒绝 / DISABLE 兜底 / Bearer admin 与非 admin / DELETE main / POST models / promote-admin / /me isOrgAdmin 等）；`tests/test_webui_login_workbench.py` 22 例回归绿
+- **依赖**：与刀 A（remote-gw login-workbench）同一次远端上产：backend 五文件拷 `/opt/evoflow` + systemd 加 `EVOFLOW_DISABLE_UNAUTH_ADMIN=1` + restart。未点名前不动生产
+
+### 明确未做
+
+- 不打 DMG、不 SSH 生产、不 push、不碰 `wt-shell-account-sync-1418` / `wt-shell-rename-1419` / 工作台仓 / #7 / 千川
+- WebUI 页面级 gate（`webui/middleware.py` 的 `is_local_request` loopback 绕过）不在本刀清单——管理 API 面已关，页面绕过属后续刀
+- `scripts/maintainer/update/latest.json` 与 PRODUCT-NOTES 等发版三份说明留给发版刀
+
 ## [1.4.19] - 2026-11-09
 
 **应用改名：电商运营终端 → AI 运营大脑（英文 AI Ops Brain）**。只改显示层品牌，**不动身份标识**：`identifier` `com.evovex.evoflow`、可执行 `evoflow`、URL scheme `evoflow`、数据根 `~/.evoflow`、Cargo/npm 包名 `evopanel` 全部保持——升级覆盖装后登录态/钥匙串/数据目录不受影响。

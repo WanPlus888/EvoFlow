@@ -17,6 +17,7 @@ from evoflow.authz.acl_store import grant as acl_grant
 from evoflow.authz.acl_store import list_grants_for_ref
 from evoflow.authz.acl_store import revoke as acl_revoke
 from evoflow.authz.context import me_payload, resolve_request_authz
+from evoflow.authz.http_guard import require_org_admin
 from evoflow.authz.scope import group_scope
 from evoflow.authz.types import DEFAULT_ORG_ID, Permission
 
@@ -24,6 +25,9 @@ router = APIRouter(prefix="/api/identity", tags=["identity"])
 
 
 def _require_admin(request: Request) -> Any:
+    # 先过 require_org_admin：公网无鉴权 → 401（而非 S2 剥权后的 403），
+    # 有信号但非 admin → 403。杜绝无 JWT promote-admin → 200（审计 2026-11-09 刀 B）。
+    require_org_admin(request)
     ctx = resolve_request_authz(request)
     if not ctx.get("is_org_admin"):
         raise HTTPException(status_code=403, detail="org_admin required")

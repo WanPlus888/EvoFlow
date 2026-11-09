@@ -9,6 +9,7 @@ from starlette.requests import Request
 
 from evoflow.authz import admin_grants as admin_mod
 from evoflow.authz import principals as principals_mod
+from evoflow.authz.http_guard import is_unauth_admin_bootstrap_allowed
 from evoflow.authz.scope import org_scope, personal_scope
 from evoflow.authz.types import DEFAULT_ORG_ID, AuthzContext, Principal
 
@@ -143,6 +144,25 @@ def resolve_request_principal(request: Request | None) -> Principal:
     return principals_mod.get_or_create_local_admin()
 
 
+def _request_has_credential_identity(request: Request | None) -> bool:
+    """请求是否携带可解析出身份的凭据（有效 JWT / principal 调试头）。
+
+    比 ``_has_auth_signals`` 更严：仅「头存在」不算——无效/垃圾 cookie 或
+    Bearer 依然会走 local-admin 回落，那仍是无鉴权。非 HTTP 调用方
+    （request=None，后台任务等）保持原口径 True。
+    """
+    if request is None:
+        return True
+    if isinstance(getattr(request.state, "webui_user", None), dict):
+        return True
+    try:
+        if str(request.headers.get("x-evoflow-principal-id") or "").strip():
+            return True
+    except Exception:
+        return False
+    return False
+
+
 def resolve_request_authz(
     request: Request | None,
     *,
@@ -160,7 +180,15 @@ def resolve_request_authz(
             raise
         logger.warning("resolve_request_authz UNIQUE race — retry once", exc_info=True)
         principal = resolve_request_principal(request)
-    return build_authz_context(principal, session_key=session_key, scope_id=scope_id)
+    ctx = build_authz_context(principal, session_key=session_key, scope_id=scope_id)
+    if request is not None and not _request_has_credential_identity(request):
+        if not is_unauth_admin_bootstrap_allowed(request):
+            # 公网/反代上的无凭据请求：principal 仍回落 local-admin（本机读 /me 兼容），
+            # 但管理员权必须剥掉——否则无 JWT 即 isOrgAdmin=true，会话列表/管理接口
+            # 对「假 admin」全开（审计 2026-11-09 刀 B）。注意 local-admin 回落本身
+            # 保留，只剥管理权。
+            ctx["is_org_admin"] = False
+    return ctx
 
 
 def me_payload(
