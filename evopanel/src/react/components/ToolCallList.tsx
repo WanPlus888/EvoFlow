@@ -1477,7 +1477,7 @@ function ToolCallListInner({
           return toolShortLabel(toolName, t)
         })()
         const inputJson = formatToolDisplayValue(t.input)
-        // 电商运营终端 CUA（node_repl js）：截图/目标应用展示。优先结构化字段，
+        // AI 运营大脑 CUA（node_repl js）：截图/目标应用展示。优先结构化字段，
         // 否则从标记或 Screenshot banner 还原（历史回放 / output 精简后）。
         const isNodeReplTool = toolKind.includes('node_repl')
         const cuaDisplay = isNodeReplTool

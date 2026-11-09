@@ -1,14 +1,14 @@
 /**
- * 电商运营终端 Plugin Management Service — HTTP client.
+ * AI Ops Brain Plugin Management Service — HTTP client.
  *
  * Implements the vendored `IPluginManagementService` (the thin settings-page
- * service from `@/services/plugins/pluginManagement.ts`) against the 电商运营终端
+ * service from `@/services/plugins/pluginManagement.ts`) against the AI Ops Brain
  * Gateway `/api/plugins/*` REST API, which is the Python port of the ZCode
  * CLI plugin adapters. The Gateway returns the exact `zcode-protocol` wire
  * shapes, so most methods are pass-throughs.
  *
  * Source lineage: ZCode/packages/services/src/plugins/pluginManagementService.ts
- * (agent-backed implementation) → 电商运营终端 HTTP-backed implementation.
+ * (agent-backed implementation) → AI Ops Brain HTTP-backed implementation.
  */
 
 import { Event } from "@zcode/rpc";

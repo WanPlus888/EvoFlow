@@ -1,4 +1,4 @@
-// 电商运营终端 自有后端的 V4 SSE transport。
+// AI 运营大脑 自有后端的 V4 SSE transport。
 // 实现 zcode-ui `ConversationTransport` 的流式子集（subscribe/activate/resync/
 // unsubscribe/onFrame/rowsRange/sendCommand），对接 backend `app/gateway/v4/routes.py`：
 //   POST /api/v4/conversation/subscribe   → { ack }

@@ -3,7 +3,7 @@ import { gatewayJson } from '../../lib/gateway-json.js'
 import { draftTypeLabel, type WorkbenchOrderDraft } from '../lib/workbench-order-draft.js'
 
 /**
- * 电商运营终端 · 生产工单概览（P1 驾驶舱合一 + 1.4.4 待确认/跟单）。
+ * AI 运营大脑 · 生产工单概览（P1 驾驶舱合一 + 1.4.4 待确认/跟单）。
  * 数据来自网关 /api/opsboard/*（服务端代理工作台），未配置或不可达时降级。
  */
 type Summary = {

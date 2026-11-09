@@ -1,4 +1,4 @@
-//! 导出本机 EvoFlow 日志包（对齐 ZCode「导出日志」：打 zip + 资源管理器定位）。
+//! 导出本机 AI 运营大脑 日志包（对齐 ZCode「导出日志」：打 zip + 资源管理器定位）。
 
 use chrono::Local;
 use serde::Serialize;
@@ -163,7 +163,7 @@ fn write_about_txt(file_count_estimate: usize) -> String {
         .collect::<Vec<_>>()
         .join(", ");
     format!(
-        "EvoFlow log export\n\
+        "AI Ops Brain log export\n\
          exportedAt: {}\n\
          profile: {}\n\
          instanceMarker: {}\n\
@@ -276,7 +276,7 @@ pub fn export_logs_blocking(app: AppHandle) -> Result<ExportLogsResult, String> 
         .file()
         .set_file_name(&suggested)
         .add_filter("Zip archive", &["zip"])
-        .set_title("导出 EvoFlow 日志")
+        .set_title("导出 AI 运营大脑 日志")
         .blocking_save_file();
 
     let Some(file_path) = picked else {

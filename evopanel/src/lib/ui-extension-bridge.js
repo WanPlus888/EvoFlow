@@ -123,7 +123,7 @@ export function attachUiExtensionBridge({ iframe, extensionId, manifest }) {
         reply(event, data.requestId, true, { value })
         return
       }
-      // fork 扩展：页面回宿主导航（电商运营终端·工单台「← 驾驶舱」用）
+      // fork 扩展：页面回宿主导航（AI 运营大脑·工单台「← 驾驶舱」用）
       if (method === 'shell.home') {
         requirePerm(perms, 'embed')
         navigate('/chat')

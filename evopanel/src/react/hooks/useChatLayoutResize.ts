@@ -105,7 +105,7 @@ export function useChatLayoutResize(opts: {
         document.getElementById('shell-aside-overlay')?.classList.remove('visible')
         const title = aside?.querySelector('.react-chat-aside-toolbar-title') as HTMLElement | null
         if (title && !title.dataset.desktopTitle) {
-          title.dataset.desktopTitle = title.textContent || '电商运营终端'
+          title.dataset.desktopTitle = title.textContent || 'AI 运营大脑'
           title.textContent = '对话'
         }
       } else {

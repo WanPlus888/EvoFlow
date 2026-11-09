@@ -17,7 +17,7 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
     let resource_manager =
         MenuItemBuilder::with_id("resource_manager", "资源管理器").build(app)?;
     let export_logs = MenuItemBuilder::with_id("export_logs", "导出日志").build(app)?;
-    let quit = MenuItemBuilder::with_id("quit", "退出 EvoFlow").build(app)?;
+    let quit = MenuItemBuilder::with_id("quit", "退出 AI 运营大脑").build(app)?;
 
     let menu = if commands::panel_developer_enable_devtools() {
         let devtools = MenuItemBuilder::with_id("devtools", "打开开发者工具").build(app)?;
@@ -52,7 +52,7 @@ pub fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
 
     let _tray = TrayIconBuilder::with_id(TRAY_ID)
         .icon(icon)
-        .tooltip("EvoFlow · 待命（关闭窗口不退出，点此显示）")
+        .tooltip("AI 运营大脑 · 待命（关闭窗口不退出，点此显示）")
         .menu(&menu)
         .on_menu_event(move |app, event| {
             handle_menu_event(app, event.id().as_ref());
@@ -138,7 +138,7 @@ pub fn set_tray_tooltip(app: AppHandle, text: String) -> Result<(), String> {
         .tray_by_id(TRAY_ID)
         .ok_or_else(|| "托盘未初始化".to_string())?;
     let tip = text.trim();
-    let display = if tip.is_empty() { "EvoFlow" } else { tip };
+    let display = if tip.is_empty() { "AI 运营大脑" } else { tip };
     tray.set_tooltip(Some(display))
         .map_err(|e| format!("更新托盘提示失败: {e}"))
 }

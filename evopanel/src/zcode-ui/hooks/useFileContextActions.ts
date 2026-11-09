@@ -32,7 +32,7 @@ function resolveFileManagerOpenPath(target: FileContextActionTarget): string {
 }
 
 export function useFileContextActions(options: FileContextActionOptions = {}) {
-  // 电商运营终端 / Share 等无 Desktop PlatformProvider 的宿主：降级为仅剪贴板，勿抛错。
+  // AI 运营大脑 / Share 等无 Desktop PlatformProvider 的宿主：降级为仅剪贴板，勿抛错。
   const platform = useOptionalPlatform();
   const { intl } = useZCodeIntl();
   const canOpenLocalFileManager = Boolean(options.canOpenLocalFileManager) && Boolean(platform);

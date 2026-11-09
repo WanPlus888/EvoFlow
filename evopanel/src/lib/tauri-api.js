@@ -2427,7 +2427,7 @@ export const api = {
     return { success: true }
   },
 
-  // 聊天会话（统一接口入口，底层走 电商运营终端 HTTP/SSE 客户端）
+  // 聊天会话（统一接口入口，底层走 AI 运营大脑 HTTP/SSE 客户端）
   /** 侧栏工作目录汇总（各目录会话总数） */
   chatSessionsWorkspaceGroups: async () => {
     const { wsClient } = await import('./ws-client.js')
@@ -3045,7 +3045,7 @@ export const api = {
   // 工具元数据（内置工具列表 + MCP服务器 + Skills，用于 Agent 配置 UI）
   getToolsMetadata: () => cachedGateway('GET', '/tools/metadata'),
 
-  // 电商运营终端 多渠道 API
+  // AI 运营大脑 多渠道 API
   getChannelsStatus: async () => gatewayProxy('GET', '/channels/'),
   restartChannel: async (name) => gatewayProxy('POST', `/channels/${name}/restart`),
   enableChannel: async (name, enabled) => gatewayProxy('POST', `/channels/${name}/enable`, { enabled }),

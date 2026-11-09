@@ -46,7 +46,7 @@ export async function startNewChatWithPresetAgent(
     )
     const label =
       (agentRow && String(agentRow.agent_name || '').trim()) ||
-      (code === 'main' ? '电商运营终端' : code === 'claude-code' ? '代码助手' : code)
+      (code === 'main' ? 'AI 运营大脑' : code === 'claude-code' ? '代码助手' : code)
 
     if (code === 'main') {
       await api.chatUpdateContext(sk, {
@@ -63,7 +63,7 @@ export async function startNewChatWithPresetAgent(
         ),
       )
       ctx.setRoleUiNonce((n) => n + 1)
-      toast('已切换为 电商运营终端（当前会话）', 'success')
+      toast('已切换为 AI 运营大脑（当前会话）', 'success')
       return
     }
     if (code === 'claude-code') {

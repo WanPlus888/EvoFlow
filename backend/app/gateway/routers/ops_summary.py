@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-  # noqa: UP009
-"""电商运营终端 · 工单概览 / 确认派单 / 跟单验收代理（fork 扩展）。
+"""AI 运营大脑 · 工单概览 / 确认派单 / 跟单验收代理（fork 扩展）。
 
 - GET  /api/opsboard/summary — 驾驶舱 KPI
 - GET/POST /api/opsboard/drafts — 待确认草稿（本地，零工作台 HTTP）

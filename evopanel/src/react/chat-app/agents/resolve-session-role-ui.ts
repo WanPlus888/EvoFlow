@@ -49,9 +49,9 @@ export function resolveAssistantReplyLabel(ctx: ResolveSessionRoleUiCtx): string
   const row = ctx.agents.find((a) => String(a?.agent_code || '').trim().toLowerCase() === code)
   const name = String(row?.agent_name || '').trim()
   if (name) return name
-  if (code === 'main') return '电商运营终端'
+  if (code === 'main') return 'AI 运营大脑'
   if (code === 'claude-code') return '代码助手'
-  return code || '电商运营终端 · Agent'
+  return code || 'AI Ops Brain · Agent'
 }
 
 export function resolveCurrentRoleLabel(ctx: ResolveSessionRoleUiCtx): string {
@@ -59,7 +59,7 @@ export function resolveCurrentRoleLabel(ctx: ResolveSessionRoleUiCtx): string {
   const row = ctx.agents.find((a) => String(a?.agent_code || '').trim().toLowerCase() === code)
   const dn = row && String(row.agent_name || '').trim()
   const roleName =
-    dn || (code === 'main' ? '电商运营终端' : code === 'claude-code' ? '代码助手' : code)
+    dn || (code === 'main' ? 'AI 运营大脑' : code === 'claude-code' ? '代码助手' : code)
   // Skip meta source tags like「自定义 / 核心 / SkillHub」— they clutter the rail signature.
   const META_PREFIX = new Set(['自定义', '核心', 'SkillHub', 'skillhub'])
   const tagLabels = ctx.normalizeAgentTags(row?.tags).filter((t) => !META_PREFIX.has(t))

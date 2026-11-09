@@ -16,7 +16,7 @@ const OFFICIAL_PLUGIN_ICON_BY_ID: Readonly<Record<string, string>> = {
   "spreadsheets@zcode-plugins-official": spreadsheetsIconUrl,
 };
 
-// 电商运营终端 官方市场 id 复用同一批打包图标（与 ZCode 官方内置插件一一对应）。
+// AI 运营大脑 官方市场 id 复用同一批打包图标（与 ZCode 官方内置插件一一对应）。
 const EVOFLOW_OFFICIAL_ICON_BY_ID: Readonly<Record<string, string>> = Object.fromEntries(
   Object.entries(OFFICIAL_PLUGIN_ICON_BY_ID).map(([id, url]) => [
     id.replace("@zcode-plugins-official", "@evoflow-plugins-official"),

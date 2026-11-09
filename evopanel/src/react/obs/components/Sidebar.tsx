@@ -30,7 +30,7 @@ export function Sidebar({ active, onChange }: { active: NavKey; onChange: (key: 
       <div className="brand">
         <div className="brand-mark">E</div>
         <div>
-          <strong>电商运营终端</strong>
+          <strong>AI 运营大脑</strong>
           <span>Observability</span>
         </div>
       </div>

@@ -1,5 +1,5 @@
 /**
- * 电商运营终端 DOM → WebGL 光学几何（liquid-glass theme-layer / glass-shader 探测逻辑）
+ * AI 运营大脑 DOM → WebGL 光学几何（liquid-glass theme-layer / glass-shader 探测逻辑）
  */
 
 const LENS_SELECTORS = [

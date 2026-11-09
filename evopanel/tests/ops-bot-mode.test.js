@@ -137,7 +137,7 @@ describe('1.4.10 回归：1.4.9 回工作台 / 1.4.8 顶空条不回退', () => 
     )
   })
 
-  it('VERSION == 1.4.18（账号同步刀 bump）', () => {
-    expect(VERSION).toBe('1.4.18')
+  it('VERSION == 1.4.19（改名刀 bump）', () => {
+    expect(VERSION).toBe('1.4.19')
   })
 })

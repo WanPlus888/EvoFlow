@@ -2,7 +2,7 @@ import { _ } from '../helper.js'
 
 export default {
   title: _('Agents', 'Agents'),
-  desc: _('创建和管理 电商运营终端 Agent，配置身份、模型和工作区', 'Create and manage 电商运营终端 Agents, configure identity, model and workspace', '建立和管理 电商运营终端 Agent，設定身份、模型和工作區'),
+  desc: _('创建和管理 AI 运营大脑 Agent，配置身份、模型和工作区', 'Create and manage AI Ops Brain Agents, configure identity, model and workspace', '建立和管理 AI 运营大脑 Agent，設定身份、模型和工作區'),
   addAgent: _('+ 新建 Agent', '+ New Agent'),
   noAgents: _('暂无 Agent', 'No agents', '暫無 Agent'),
   loadFailed: _('加载失败', 'Load failed', '載入失敗'),

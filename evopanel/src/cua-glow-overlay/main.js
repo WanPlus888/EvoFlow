@@ -1,13 +1,13 @@
 /**
  * Windows CUA 顶部操作提示 — 对齐 ZCode windowsCuaOperationIndicatorContent。
- * 「EvoFlow 正在操作电脑」+ 三点呼吸；点击穿透 / 截图排除由宿主窗口负责。
+ * 「AI 运营大脑 正在操作电脑」+ 三点呼吸；点击穿透 / 截图排除由宿主窗口负责。
  */
 
 const isZh =
   typeof navigator !== 'undefined' &&
   /^zh\b/i.test(String(navigator.language || navigator.languages?.[0] || ''))
 
-const text = isZh ? 'EvoFlow 正在操作电脑' : 'EvoFlow is controlling your computer'
+const text = isZh ? 'AI 运营大脑 正在操作电脑' : 'AI Ops Brain is controlling your computer'
 
 const style = document.createElement('style')
 style.textContent = `

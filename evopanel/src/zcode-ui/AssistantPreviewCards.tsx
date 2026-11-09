@@ -220,7 +220,7 @@ function useAssistantPreviewCardValidation(
 }
 
 /**
- * 电商运营终端 V4 宿主可能只有 Intl（无 ServiceProvider）或只有部分 ServiceProvider
+ * AI 运营大脑 V4 宿主可能只有 Intl（无 ServiceProvider）或只有部分 ServiceProvider
  * （无 TabStore）。无 Provider 时走 stat-free；有 Provider 时 Mounted 路径依赖
  * useWorkspaceServices 内的 useOptionalTabStore，勿再硬依赖 TabStore。
  */

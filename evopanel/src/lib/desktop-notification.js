@@ -102,14 +102,14 @@ function applyDeepLinkHash(hash) {
  */
 export async function notifyDesktopCompletion(opts) {
   if (!isTauri || !isDesktopNotifyEnabled()) return
-  const title = String(opts?.title || '电商运营终端').trim() || '电商运营终端'
+  const title = String(opts?.title || 'AI 运营大脑').trim() || 'AI 运营大脑'
   const body = String(opts?.body || '').trim()
   const tag = opts?.tag ? String(opts.tag) : ''
   if (!shouldSend(tag)) return
   // 通知已通过去重、即将展示 → 立即播放气泡提示音。
   // 故意不等权限/sendNotification 的结果：音效是用户可感知的兜底信号，
   // 通知链路（权限、插件）出问题时仍要响；也不按窗口焦点静音，
-  // 电商运营终端 的通知本身就是前台也发，这里保持一致。
+  // AI 运营大脑 的通知本身就是前台也发，这里保持一致。
   void playTaskNotificationSound()
   try {
     const granted = await ensurePermission()

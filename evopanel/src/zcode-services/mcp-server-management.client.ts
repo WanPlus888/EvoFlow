@@ -1,8 +1,8 @@
 // =============================================================================
-// 电商运营终端 MCP Server Management Client
+// AI Ops Brain MCP Server Management Client
 // Source: ZCode/packages/services/src/plugins/pluginManagement.client.ts
 // Purpose: concrete IMcpServerManagementService implementation that talks to
-//          the running 电商运营终端 Gateway (FastAPI sidecar). All HTTP calls are
+//          the running AI Ops Brain Gateway (FastAPI sidecar). All HTTP calls are
 //          relative to the current origin so the same code works in:
 //            - Vite dev (proxied via /api -> 127.0.0.1:8070, see vite.config.js)
 //            - Tauri-embedded webview (same /api served by sidecar via tauri://)
@@ -183,7 +183,7 @@ function inferMarketplaceForName(name: string, installedMarketplaces: string[]):
 function buildMarketplaceSummaries(
   installedConfig: ConfigRepoMcpListResponse["mcp_servers"],
 ): McpMarketplaceSummary[] {
-  // The 电商运营终端 gateway does not yet expose a /api/mcp/marketplaces endpoint
+  // The AI Ops Brain gateway does not yet expose a /api/mcp/marketplaces endpoint
   // (openapi.json confirms it). We synthesize a single "official" marketplace
   // from the constant list and tag any non-official config keys as their own
   // ad-hoc marketplace (id == key) so callers see them in the overview.
@@ -199,7 +199,7 @@ function buildMarketplaceSummaries(
       isOfficial: true,
       pluginCount: Object.keys(installedConfig).length,
       description:
-        "Official 电商运营终端 MCP server marketplace (see zcode-shared/mcp-marketplaces.ts).",
+        "Official AI Ops Brain MCP server marketplace (see zcode-shared/mcp-marketplaces.ts).",
     });
   }
   for (const key of Object.keys(installedConfig)) {
@@ -390,7 +390,7 @@ export class EvoFlowMcpServerManagementClient implements IMcpServerManagementSer
     // sources are baked into the bundled official list. Fail loudly so callers
     // know the registry is read-only.
     throw new McpServerManagementError(
-      "电商运营终端 gateway does not support runtime marketplace registration; marketplaces are bundled.",
+      "AI Ops Brain gateway does not support runtime marketplace registration; marketplaces are bundled.",
       { code: "not_implemented" },
     );
   }
@@ -401,7 +401,7 @@ export class EvoFlowMcpServerManagementClient implements IMcpServerManagementSer
     marketplace: string;
   }): Promise<void> {
     throw new McpServerManagementError(
-      "电商运营终端 gateway does not support runtime marketplace removal; marketplaces are bundled.",
+      "AI Ops Brain gateway does not support runtime marketplace removal; marketplaces are bundled.",
       { code: "not_implemented" },
     );
   }
@@ -492,7 +492,7 @@ export class EvoFlowMcpServerManagementClient implements IMcpServerManagementSer
     return {
       success: false,
       serverName: _params.serverName,
-      error: "restoreBuiltinServer is not supported against the 电商运营终端 gateway",
+      error: "restoreBuiltinServer is not supported against the AI Ops Brain gateway",
     };
   }
 

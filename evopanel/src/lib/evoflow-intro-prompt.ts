@@ -2,4 +2,4 @@
 export const EVOFLOW_INTRO_SELF_LABEL = '介绍一下自己~'
 
 export const EVOFLOW_INTRO_SELF_PROMPT =
-  '请正式、清晰地介绍 电商运营终端 与你自身的能力边界：包括可提供的功能与典型服务、适用场景，以及在本软件中的基本使用方式。'
+  '请正式、清晰地介绍 AI 运营大脑 与你自身的能力边界：包括可提供的功能与典型服务、适用场景，以及在本软件中的基本使用方式。'

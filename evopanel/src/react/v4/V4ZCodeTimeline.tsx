@@ -991,7 +991,7 @@ export function V4ZCodeTimeline(props: {
   connecting?: boolean;
   /** 投影 store 已 error 且无快照：留在 V4 显示失败态，不回落老面板。 */
   connectionFailed?: boolean;
-  /** 电商运营终端 会话 key：stream-compare 落盘目录名（与 sse/v4-recv 同轮对账）。 */
+  /** AI 运营大脑 会话 key：stream-compare 落盘目录名（与 sse/v4-recv 同轮对账）。 */
   evoflowSessionKey?: string | null;
   /**
    * 窄栏嵌入（小V）：composer 在面板外，禁用空态居中；sessionKey 用 evoflow key 保持稳定，
@@ -1011,11 +1011,11 @@ export function V4ZCodeTimeline(props: {
    */
   optimisticUserText?: string | null;
   /**
-   * 电商运营终端 底部输入区：作为 ConversationTimeline sticky bottomDock 挂进同一滚动视口
+   * AI 运营大脑 底部输入区：作为 ConversationTimeline sticky bottomDock 挂进同一滚动视口
    * （对齐 ZCode SessionPane），避免 messages 区单独滚动、下方空出「留给输入框」的空白。
    */
   bottomDock?: ReactNode;
-  /** 工具卡/文件 chip 点击 → 电商运营终端 右侧面板文件预览（ZCode CodeViewerSource 语义）。 */
+  /** 工具卡/文件 chip 点击 → AI 运营大脑 右侧面板文件预览（ZCode CodeViewerSource 语义）。 */
   onOpenCodeViewer?: (source: import("@zcode/ui/lib/codeViewer.js").CodeViewerSource) => void;
   /**
    * Markdown 文件链接点击。未传时回落到 onOpenCodeViewer（type:file），
@@ -1660,7 +1660,7 @@ export function V4ZCodeTimeline(props: {
     <ZCodeIntlProvider initialLocale="zh-CN">
       {/*
         MessageFileLink / useFileContextActions 强依赖 PlatformProvider；
-        电商运营终端 无桌面 window.zcode，挂 stub，避免 markdown 整段降级为纯文本。
+        AI 运营大脑 无桌面 window.zcode，挂 stub，避免 markdown 整段降级为纯文本。
       */}
       <PlatformProvider platform={evoflowStubPlatform}>
       <MarkdownTableVariantProvider value="evoflow">

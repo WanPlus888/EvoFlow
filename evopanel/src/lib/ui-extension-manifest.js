@@ -1,5 +1,5 @@
 /**
- * 电商运营终端 UI Extension Manifest v1 — parse & validate (lightweight, no AJV).
+ * AI Ops Brain UI Extension Manifest v1 — parse & validate (lightweight, no AJV).
  */
 
 const ID_RE = /^[a-z][a-z0-9-]{1,63}$/

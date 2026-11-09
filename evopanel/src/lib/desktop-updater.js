@@ -179,7 +179,7 @@ export async function notifyDesktopUpdateReady(version) {
   try {
     const { notifyDesktopCompletion } = await import('./desktop-notification.js')
     await notifyDesktopCompletion({
-      title: '电商运营终端 更新已就绪',
+      title: 'AI 运营大脑 更新已就绪',
       body: `v${version || ''} 已下载完成，点击横幅或设置 → 关于 → 立即重启以完成更新。`,
       tag: 'evoflow-update-ready',
     })

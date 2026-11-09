@@ -2192,7 +2192,7 @@ function ConversationRowViewImpl({
 }: ConversationRowViewProps) {
   switch (row.kind) {
     case "userInput": {
-      // 电商运营终端 工具审批内部标记（__evf_tool_approval_v1__ / replay / 中文授权回执）
+      // AI 运营大脑 工具审批内部标记（__evf_tool_approval_v1__ / replay / 中文授权回执）
       // 旧 MessageRow 不渲染；已镜像进 V4 的也要隐藏，避免右侧再冒一串审批字符串。
       const userText = String(row.text || "").trim();
       const lower = userText.toLowerCase();

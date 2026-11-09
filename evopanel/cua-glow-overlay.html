@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>EvoFlow Computer Use</title>
+  <title>AI Ops Brain Computer Use</title>
   <!--
     Self-contained (ZCode windowsCuaOperationIndicatorContent).
     Opaque host window: solid page bg so WebView2 always paints (transparent often blanks).
@@ -65,13 +65,13 @@
 <body>
   <div class="indicator" role="status" aria-live="polite">
     <span class="dots" aria-hidden="true"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>
-    <span id="cua-glow-label">EvoFlow 正在操作电脑</span>
+    <span id="cua-glow-label">AI 运营大脑 正在操作电脑</span>
   </div>
   <script>
     (function () {
       var isZh = typeof navigator !== 'undefined' && /^zh\b/i.test(String(navigator.language || (navigator.languages && navigator.languages[0]) || ''))
       var label = document.getElementById('cua-glow-label')
-      if (label) label.textContent = isZh ? 'EvoFlow 正在操作电脑' : 'EvoFlow is controlling your computer'
+      if (label) label.textContent = isZh ? 'AI 运营大脑 正在操作电脑' : 'AI Ops Brain is controlling your computer'
       document.documentElement.lang = isZh ? 'zh-CN' : 'en'
       document.documentElement.dataset.state = 'active'
       window.__cuaGlowOverlay = {

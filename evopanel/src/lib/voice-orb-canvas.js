@@ -99,7 +99,7 @@ const STATE_CFG = {
   },
 }
 
-// 电商运营终端 状态 → STATE_CFG key 映射
+// AI 运营大脑 状态 → STATE_CFG key 映射
 const STATE_MAP = {
   listening: 'listening',
   processing: 'processing',

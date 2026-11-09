@@ -176,7 +176,7 @@ function InlineMediaContent({
 }
 
 function InlineImageContent({ preview }: { preview: ImageCodeViewerSource }) {
-  // 电商运营终端 V4 宿主无 ServiceProvider：不能 useServices()，否则展开图片工具卡会拖垮 timeline。
+  // AI 运营大脑 V4 宿主无 ServiceProvider：不能 useServices()，否则展开图片工具卡会拖垮 timeline。
   const services = useOptionalServices();
   const fileService = services?.fileService ?? null;
   const { intl } = useZCodeIntl();

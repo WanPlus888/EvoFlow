@@ -83,7 +83,7 @@ function syncActive(el) {
   const titleEl = document.querySelector('#mobile-topbar .mobile-topbar-title')
   if (titleEl) {
     const tab = TABS.find((t) => t.match(path))
-    titleEl.textContent = tab?.label || '电商运营终端'
+    titleEl.textContent = tab?.label || 'AI 运营大脑'
   }
 }
 

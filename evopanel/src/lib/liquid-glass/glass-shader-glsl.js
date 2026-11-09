@@ -1,4 +1,4 @@
-/** GLSL sources for 电商运营终端 liquid glass */
+/** GLSL sources for AI Ops Brain liquid glass */
 export const VS_SRC = `
   attribute vec2 a_pos;
   void main() {

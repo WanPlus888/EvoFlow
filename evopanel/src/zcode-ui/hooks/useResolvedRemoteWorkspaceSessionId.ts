@@ -56,7 +56,7 @@ export function useResolvedRemoteWorkspaceSessionId(
   workspaceIdentity?: string | null,
   remoteTarget?: unknown,
 ): string | null {
-  // 电商运营终端 V4 只挂 ServiceProvider、无 TabStoreProvider：用 optional 回退空 tab，
+  // AI 运营大脑 V4 只挂 ServiceProvider、无 TabStoreProvider：用 optional 回退空 tab，
   // 勿抛「必须在 TabStoreProvider 内」炸掉 ConversationTimeline。
   const activeWorkspaceTab = useOptionalTabStore((state) => {
     if (!workspacePath || !state.activeTabId) {

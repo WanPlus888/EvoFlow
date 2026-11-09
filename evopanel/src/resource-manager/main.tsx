@@ -1,5 +1,5 @@
 /**
- * EvoFlow 资源管理器独立窗口入口。
+ * AI 运营大脑 资源管理器独立窗口入口。
  * UI = vendored ZCode ResourceManagerApp；数据 = Tauri get_resource_usage_snapshot。
  */
 import { createElement } from "react";

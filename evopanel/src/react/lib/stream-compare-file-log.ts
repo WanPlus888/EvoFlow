@@ -576,7 +576,7 @@ export function markStreamCompareRun(
  * sig 去重；connecting / 空快照也会落一条，便于排查「发送后白屏」。
  */
 export function logStreamCompareV4PanelDisplay(opts: {
-  /** 电商运营终端 sessionKey；缺省走 active session。 */
+  /** AI 运营大脑 sessionKey；缺省走 active session。 */
   sessionKey?: string
   /** LangGraph threadId（= v4 sessionId）；用于 thread→session 回填。 */
   threadId?: string

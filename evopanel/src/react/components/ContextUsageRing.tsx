@@ -100,7 +100,7 @@ function cacheHitRateLabel(rate: number | null | undefined): string | null {
   return `${Math.round(rate * 100)}%`
 }
 
-// Legacy cache from tokenTotals (电商运营终端 original shape)
+// Legacy cache from tokenTotals (AI Ops Brain original shape)
 function legacyCacheLine(tokenTotals: TokenTotals | null | undefined): string | null {
   if (!tokenTotals) return null
   const hit = Math.max(0, Number(tokenTotals.cacheRead) || 0)

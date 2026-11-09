@@ -2,7 +2,7 @@ import { _ } from '../helper.js'
 
 export default {
   title: _('仪表盘', 'Dashboard', '儀表板'),
-  desc: _('电商运营终端 运行状态概览', '电商运营终端 runtime status overview', '电商运营终端 執行狀態概覽', '电商运营终端 実行状況の概要', '电商运营终端 실행 상태 개요', 'Tổng quan trạng thái 电商运营终端', 'Resumen del estado de 电商运营终端', 'Visão geral do estado do 电商运营终端', 'Обзор состояния 电商运营终端', 'Vue d\'ensemble de l\'état 电商运营终端', '电商运营终端-Statusübersicht'),
+  desc: _('AI 运营大脑 运行状态概览', 'AI Ops Brain runtime status overview', 'AI 运营大脑 執行狀態概覽', 'AI Ops Brain 実行状況の概要', 'AI Ops Brain 실행 상태 개요', 'Tổng quan trạng thái AI Ops Brain', 'Resumen del estado de AI Ops Brain', 'Visão geral do estado do AI Ops Brain', 'Обзор состояния AI Ops Brain', 'Vue d\'ensemble de l\'état AI Ops Brain', 'AI Ops Brain-Statusübersicht'),
   gateway: _('Gateway', 'Gateway'),
   portDetect: _('端口检测', 'Port detection', '連接埠檢測', 'ポート検出', '포트 감지'),
   notStarted: _('未启动', 'Not started', '未啟動', '未起動', '미시작', 'Chưa khởi động', 'No iniciado', 'Não iniciado', 'Не запущен', 'Non démarré', 'Nicht gestartet'),
@@ -21,7 +21,7 @@ export default {
   basedOnProviders: _('基于 {count} 个渠道商', 'From {count} providers', '基於 {count} 個渠道商'),
   baseServices: _('基础服务', 'Services', '基礎服務'),
   controlUI: _('Control UI', 'Control UI'),
-  controlUIDesc: _('电商运营终端 原生面板', '电商运营终端 native panel', '电商运营终端 原生面板'),
+  controlUIDesc: _('AI 运营大脑 原生面板', 'AI Ops Brain native panel', 'AI 运营大脑 原生面板'),
   controlUIClick: _('点击打开浏览器', 'Click to open in browser', '點擊開啟瀏覽器'),
   controlUINotRunning: _('Gateway 未运行', 'Gateway not running', 'Gateway 未執行'),
   restartGw: _('重启 Gateway', 'Restart Gateway', '重啟 Gateway'),

@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-"""品牌换装 v2：全局词边界清扫「EvoFlow」→「电商运营终端」。
+"""品牌换装 v3：全局清扫「EvoFlow」与上一代旧名（下称 LEGACY）→「AI 运营大脑」。
 
 设计原则（合并上游的安全边界）：
 - \\bEvoFlow\\b 词边界替换：不会碰 EvoFlowHomeDashboard 等标识符、evoflow/EVOFLOW 等其他大小写。
+- 幂等别名替换：上一代品牌名 LEGACY →「AI 运营大脑」（显示层；纯 CJK 串，不可能是标识符）。
 - 保护段：URL、EvovexAI/EvoFlow 归属引用（PolyForm Required Notice 要求保留）。
 - 跳过 mirror-urls.js（REPO_MAP 的键是 GitHub 仓库真名，属于外部标识）。
 - tauri.conf.json / tauri.macos.conf.json 走精确替换（不动 identifier/版权/许可证/updater pubkey）。
+- 英文槽（en-US i18n 等）需要写「AI Ops Brain」——脚本只做中文主名清扫，英文语境由人工/S 后续定点处理。
 - 幂等：可重复执行；上游合并后重跑一次即可。
 """
 import re
@@ -13,7 +15,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-NEW = "电商运营终端"
+NEW = "AI 运营大脑"
+LEGACY = "电商运营" "终端"
 
 # 全局清扫范围（显示层代码/文档）
 SWEEP_DIRS = ["evopanel/src", "skills"]
@@ -36,10 +39,10 @@ def brand_text(text: str) -> str:
     out = []
     last = 0
     for m in PROTECT.finditer(text):
-        out.append(WORD.sub(NEW, text[last:m.start()]))
+        out.append(WORD.sub(NEW, text[last:m.start()]).replace(LEGACY, NEW))
         out.append(m.group(0))
         last = m.end()
-    out.append(WORD.sub(NEW, text[last:]))
+    out.append(WORD.sub(NEW, text[last:]).replace(LEGACY, NEW))
     return "".join(out)
 
 
@@ -74,13 +77,19 @@ def main() -> int:
             changed += 1
     print(f"sweep: {changed} 个文件已换装")
 
-    # tauri 配置：精确替换（幂等）
+    # tauri 配置：精确替换（幂等；同时吃上游 EvoFlow 与上一代旧名两种来源）
     pairs_global = [
         ('"productName": "EvoFlow"', f'"productName": "{NEW}"'),
+        ('"productName": "电商运营" "终端"', f'"productName": "{NEW}"'),
         ('"title": "EvoFlow"', f'"title": "{NEW}"'),
+        ('"title": "电商运营" "终端"', f'"title": "{NEW}"'),
         ('"shortDescription": "EvoFlow — AI Agent Orchestration Desktop"',
          f'"shortDescription": "{NEW} — AI 员工与电商生产编排工作台"'),
+        ('"shortDescription": "电商运营' '终端 — AI 员工与电商生产编排工作台"',
+         f'"shortDescription": "{NEW} — AI 员工与电商生产编排工作台"'),
         ('"longDescription": "EvoFlow is a super agent orchestration framework powered by EvovexAI, featuring a visual management desktop panel built with Tauri v2."',
+         f'"longDescription": "{NEW}：基于 EvoFlow（EvovexAI，PolyForm Noncommercial 授权）定制的智能体编排桌面工作台，内置 Tauri v2 面板。"'),
+        ('"longDescription": "电商运营' '终端：基于 电商运营' '终端（EvovexAI，PolyForm Noncommercial 授权）定制的智能体编排桌面工作台，内置 Tauri v2 面板。"',
          f'"longDescription": "{NEW}：基于 EvoFlow（EvovexAI，PolyForm Noncommercial 授权）定制的智能体编排桌面工作台，内置 Tauri v2 面板。"'),
         ('"https://raw.githubusercontent.com/EvovexAI/EvoFlow/main/update/latest.json"',
          '"https://localhost/evoflow-fork-auto-update-disabled.json"'),
@@ -93,7 +102,7 @@ def main() -> int:
         orig = t
         for o, n in pairs_global:
             t = t.replace(o, n)
-        # 兜底：conf 里其余显示语义的 EvoFlow（保护 identifier/版权/URL 不动）
+        # 兜底：conf 里其余显示语义的 EvoFlow / 旧名（保护 identifier/版权/URL 不动）
         t = brand_text(t)
         if t != orig:
             conf.write_text(t, encoding="utf-8")

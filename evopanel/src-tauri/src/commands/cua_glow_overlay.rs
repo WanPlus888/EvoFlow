@@ -1,6 +1,6 @@
 //! Windows CUA 顶部操作提示 — 对齐 ZCode `windowsCuaOperationIndicator`。
 //!
-//! 当前鼠标所在显示器顶部居中：「EvoFlow 正在操作电脑」。
+//! 当前鼠标所在显示器顶部居中：「AI 运营大脑 正在操作电脑」。
 //! 加载 ``cua-glow-overlay.html``（自包含）；显示后强制 HWND_TOPMOST。
 //!
 //! 与 browser_embed 相同：``WebviewWindow::build()`` 返回时 HWND 往往尚未就绪，
@@ -184,7 +184,7 @@ fn build_glow_window(
         OVERLAY_LABEL,
         WebviewUrl::App("cua-glow-overlay.html".into()),
     )
-    .title("EvoFlow Computer Use")
+    .title("AI Ops Brain Computer Use")
     .inner_size(OVERLAY_WIDTH, OVERLAY_HEIGHT)
     .position(pos.x, pos.y)
     .decorations(false)

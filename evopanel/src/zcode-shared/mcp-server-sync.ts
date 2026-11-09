@@ -1,5 +1,5 @@
 // =============================================================================
-// ZCode Plugin Sync Types - Ported to 电商运营终端 MCP Server Management
+// ZCode Plugin Sync Types - Ported to AI Ops Brain MCP Server Management
 // Source: ZCode/packages/shared/src/plugin-sync.ts
 // Changes: Plugin → MCP Server, plugin → mcp-server
 // =============================================================================

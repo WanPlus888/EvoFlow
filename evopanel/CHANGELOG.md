@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.4.19] - 2026-11-09
+
+**应用改名：电商运营终端 → AI 运营大脑（英文 AI Ops Brain）**。只改显示层品牌，**不动身份标识**：`identifier` `com.evovex.evoflow`、可执行 `evoflow`、URL scheme `evoflow`、数据根 `~/.evoflow`、Cargo/npm 包名 `evopanel` 全部保持——升级覆盖装后登录态/钥匙串/数据目录不受影响。
+
+### 本版要点
+
+- **配置层**：`tauri.conf.json` `productName` / 窗口 `title` / `shortDescription` / `longDescription` 与 `tauri.macos.conf.json` `title`、`index.html` `<title>` 均改「AI 运营大脑」；`longDescription` 修正上代双写品牌名，归属保留上游真名 EvoFlow（PolyForm Required Notice）
+- **托盘 / 原生窗口（补上轮品牌换装漏网的 EvoFlow）**：`tray.rs` 退出菜单 / tooltip / 空 tip 默认；`lib.rs` 启动 panic 文案；`export_logs.rs` 导出对话框标题与日志包 manifest；`resource_manager.rs` 进程分组标签（进程名匹配器 `evoflow`/`evoflow-main` 等**未动**）；`cua_glow_overlay` 窗口标题与「正在操作电脑」覆盖层（中/英）；`agent-trace.html` 独立页标题；启动层 `public/console/` TAGLINE 与 `index.html` 启动台品牌名
+- **前端品牌清扫（127 文件）**：`evopanel/src` + `ops_summary.py` docstring 全量「电商运营终端」→ 新名；语言感知——中文语境/品牌孤立默认「AI 运营大脑」，英文语境（en-US i18n、英文注释/描述、拉丁语系 locale）用「AI Ops Brain」；zh/zh-TW locale 用中文名，ja/ko/ru/vi/es/pt/de/fr locale 统一英文名
+- **模块边界不动**：侧栏 `nav-ops-brain`「运营大脑」、ops-bot 顶条「运营大脑」、`OPS_SPECIALISTS` Router 名、工作台 FAB 均为功能模块名，**未改**（应用名靠「AI」前缀区分）
+- **品牌脚本升级**：`tools/branding/apply_branding.py` v3——新增幂等别名替换「电商运营终端」→「AI 运营大脑」（仍走 PROTECT，不碰 identifier/URL/仓库名），供上游合并后重跑；本刀未执行该脚本，全部定点/脚本化精确替换
+- **测试**：新增 `evopanel/tests/shell-rename-ai-ops-brain.test.js`（10 例：productName/title/identifier/品牌标题/模块名保留/托盘无 EvoFlow 残留/index.html title/locale 一致性）；3 处版本钉 1.4.18→1.4.19；`npm run version:set -- 1.4.19` 全量同步（VERSION/package(-lock)/Cargo(-lock)/tauri.conf/backend pyprojects）
+- **验收 grep**：白名单外「电商运营终端」零命中（白名单：CHANGELOG 历史、PRODUCT-NOTES-*、skills/**、PolyForm/LICENSE 归属、模块名「运营大脑」、steps 自述）
+
+### 明确未做（待办）
+
+- 不打 DMG、不装 `/Applications`、不删现网旧 `.app`、不推 origin、不上产——Dock 名/关于页/登录品牌冷启验证留给运维打 DMG 点名装后验
+- 旧 `/Applications/电商运营终端.app` 若与新 `.app` 并存，Dock 可能残留旧图标：由运维收口删除/归档 + 用户硬刷 Dock
+- 工作台仓对称文案（`ops-board.html` title、深链兜底「请打开本机「…」」、`evoflow.extension.json` description）另开工作台小刀
+- Win NSIS 显示名随 `productName` 自动走；`installer-hooks.nsh` 内 EvoFlow 残留未点名不扩
+
 ## [1.4.18] - 2026-11-09
 
 **运营终端账号默认 = 工作台账号（account sync）**：工作台 iframe 登录/换号，壳账号自动跟随；壳侧「切换用户」成功后反向给工作台 iframe 免登。零改工作台仓（复用其既有 pywebview SSO 契约）。

@@ -1,4 +1,4 @@
-//! EvoFlow 资源管理器：独立窗口 + 本机 CPU/内存/相关进程快照。
+//! AI 运营大脑 资源管理器：独立窗口 + 本机 CPU/内存/相关进程快照。
 //! UI 复用 vendored `ResourceManagerApp`；采样在 Tauri 侧完成，避免卡主窗口。
 
 use std::collections::HashMap;
@@ -117,7 +117,7 @@ fn classify_process(name: &str, cmdline: &str) -> (&'static str, &'static str, &
         return ("base", "host", "Gateway");
     }
     if lower.contains("evoflow") || lower.contains("evopanel") {
-        return ("base", "main", "EvoFlow");
+        return ("base", "main", "AI 运营大脑");
     }
     if lower.contains("python")
         || lower.contains("uvicorn")
@@ -548,7 +548,7 @@ fn ensure_self_process(processes: &mut Vec<ResourceUsageProcess>) {
         name: "evoflow-main".into(),
         category: "base".into(),
         group_key: "main".into(),
-        group_label: "EvoFlow".into(),
+        group_label: "AI 运营大脑".into(),
         cpu_percent: 0.0,
         memory_bytes: 0,
         sampled: false,
@@ -653,7 +653,7 @@ pub fn set_resource_usage_sampling_active(active: bool) -> Result<(), String> {
     Ok(())
 }
 
-/// 拉取 CPU / 内存 / EvoFlow 相关进程快照。
+/// 拉取 CPU / 内存 / AI 运营大脑 相关进程快照。
 #[tauri::command]
 pub async fn get_resource_usage_snapshot() -> Result<ResourceUsageSnapshot, String> {
     tauri::async_runtime::spawn_blocking(build_snapshot)

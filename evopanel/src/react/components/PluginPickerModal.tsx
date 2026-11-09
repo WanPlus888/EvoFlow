@@ -55,7 +55,7 @@ const COMPONENT_BADGES: Record<string, string> = {
 /**
  * 插件多选弹窗（ZCode UI 风格）。
  * 视觉走 zcode-ui 的原版设计 token（styles-bridge.css：@theme + utilities，
- * 无 preflight、全局规则收窄到 .zcode-bridge-root，不影响 电商运营终端 宿主）。
+ * 无 preflight、全局规则收窄到 .zcode-bridge-root，不影响 AI 运营大脑 宿主）。
  * 列表形态对齐 ZCode 插件市场卡片：图标方块 + 显示名 + 描述 + 能力徽标，
  * 选中态用 ZCode 的 check 圆点；行为与 SkillPickerModal 一致（多选、确定回写）。
  */

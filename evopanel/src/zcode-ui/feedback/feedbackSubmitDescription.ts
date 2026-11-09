@@ -7,7 +7,7 @@ import type {
 } from "@zcode/shared";
 
 const TITLE_MAX = 80;
-const FEEDBACK_ZCODE_AGENT_LABEL = "电商运营终端 Agent";
+const FEEDBACK_ZCODE_AGENT_LABEL = "AI Ops Brain Agent";
 
 type MessageFormatter = (descriptor: { id: string }, values?: Record<string, string>) => string;
 

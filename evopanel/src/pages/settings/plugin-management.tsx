@@ -1,9 +1,9 @@
 /**
- * 电商运营终端 设置中心 — 插件市场 Tab（ZCode PluginsSection 原版挂载）
+ * AI 运营大脑 设置中心 — 插件市场 Tab（ZCode PluginsSection 原版挂载）
  *
  * 原样引用 ZCode 的 <PluginsSection>（插件列表 + 插件商店；MCP/技能
  * tab 暂藏，待迁移完成再开放）与 <PluginStorePage>（插件市场整页），通过
- * createRoot 桥接到 电商运营终端 vanilla JS hub.js。
+ * createRoot 桥接到 AI 运营大脑 vanilla JS hub.js。
  *
  * 数据链路：
  *   pluginManagementService = EvoflowPluginManagementClient → Gateway

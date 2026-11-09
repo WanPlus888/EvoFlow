@@ -33,7 +33,7 @@ export function CuaAppSummaryIcon({
     const request = iconRequest ?? bundleId;
     if (!request) return () => undefined;
     const resolve = async (): Promise<string | null> => {
-      // 平台原生 resolver 优先（ZCode 桌面语义）；电商运营终端 无实现时兜底走网关
+      // 平台原生 resolver 优先（ZCode 桌面语义）；AI 运营大脑 无实现时兜底走网关
       // /api/cua/app-icon（PowerShell 按 locator 提取）。字符串形式是旧 bundle_id，
       // 无法构造 locator，交回调用方的 fallback 图形。
       if (typeof request !== "string" && platform?.getApplicationIcon) {

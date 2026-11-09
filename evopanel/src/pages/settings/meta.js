@@ -83,7 +83,7 @@ export const TAB_META = {
   about: { title: '关于', desc: '版本信息与更新检查。' },
   'mcp-server-management': {
     title: 'MCP 服务器管理',
-    desc: '已装、可装、配置与运行状态 — 来自 电商运营终端 MCP 设置组件。',
+    desc: '已装、可装、配置与运行状态 — 来自 AI 运营大脑 MCP 设置组件。',
   },
   'mcp-connectors': {
     title: '连接器',
@@ -95,7 +95,7 @@ export const TAB_META = {
   },
   'plugin-management': {
     title: '插件市场',
-    desc: '电商运营终端 插件体系：市场源、安装、启停与组件详情 — 来自 电商运营终端 原版插件设置组件。',
+    desc: 'AI 运营大脑 插件体系：市场源、安装、启停与组件详情 — 来自 AI 运营大脑 原版插件设置组件。',
   },
 }
 

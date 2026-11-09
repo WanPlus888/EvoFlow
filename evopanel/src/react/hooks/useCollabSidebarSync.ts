@@ -265,13 +265,13 @@ export function useCollabSidebarSync(opts: {
         collabTaskStatusNotifyRef.current.set(taskId, nextTaskSt)
         if (nextTaskSt === 'completed' && prevTaskSt !== 'completed') {
           void notifyDesktopCompletion({
-            title: '电商运营终端 · 任务完成',
+            title: 'AI 运营大脑 · 任务完成',
             body: taskName ? `「${taskName}」已完成` : '协作任务已完成',
             tag: `task:${taskId}:completed`,
           })
         } else if (nextTaskSt === 'failed' && prevTaskSt !== 'failed') {
           void notifyDesktopCompletion({
-            title: '电商运营终端 · 任务失败',
+            title: 'AI 运营大脑 · 任务失败',
             body: taskName ? `「${taskName}」执行失败` : '协作任务执行失败',
             tag: `task:${taskId}:failed`,
           })

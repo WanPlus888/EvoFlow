@@ -466,7 +466,7 @@ pub fn run() {
             workbench_shell::workbench_shell_open_in_browser,
         ])
         .build(tauri::generate_context!())
-        .expect("启动 EvoFlow 失败")
+        .expect("启动 AI 运营大脑 失败")
         .run(|_app, event| {
             if let tauri::RunEvent::Exit = event {
                 ui_extensions::stop_all_ui_extension_services();
