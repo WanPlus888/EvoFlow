@@ -193,7 +193,10 @@ async def get_primary_model() -> dict:
     elif raw:
         logger.warning("config primary_model=%r does not match any model; falling back to first model", raw)
     if primary is None and config.models:
-        primary = config.models[0].name
+        # 1.4.21：回落不得停在小米默认——目录有 GLM-5.3-Flash 时优先 Flash。
+        from evoflow.plans.zhipu_coding_plan_models import preferred_primary_fallback
+
+        primary = preferred_primary_fallback([m.name for m in config.models])
     return {"primary_model": primary}
 
 

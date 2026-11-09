@@ -50,8 +50,8 @@ describe('1.4.7 工作台冷启：workbench-mode 藏壳侧栏', () => {
     expect(WORKBENCH_HOME).toContain('frame.contentWindow')
   })
 
-  it('VERSION == 1.4.20（网关无鉴权硬化刀 bump）；shouldHideAssistant 仍藏小V（workbench-home）', () => {
-    expect(VERSION).toBe('1.4.20')
+  it('VERSION == 1.4.21（壳 GLM-Flash 默认刀 bump）；shouldHideAssistant 仍藏小V（workbench-home）', () => {
+    expect(VERSION).toBe('1.4.21')
     expect(ASSISTANT_CTX).toMatch(/path === 'workbench-home'/)
   })
 })

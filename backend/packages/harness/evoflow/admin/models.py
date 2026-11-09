@@ -57,7 +57,10 @@ def get_primary_model() -> dict[str, Any]:
     if raw and config.get_model_config(raw) is not None:
         primary = raw
     elif config.models:
-        primary = config.models[0].name
+        # 1.4.21：primary 缺失/失效回落不得停在小米默认——目录有 GLM-5.3-Flash 时优先 Flash。
+        from evoflow.plans.zhipu_coding_plan_models import preferred_primary_fallback
+
+        primary = preferred_primary_fallback([m.name for m in config.models])
     return {"primary_model": primary}
 
 

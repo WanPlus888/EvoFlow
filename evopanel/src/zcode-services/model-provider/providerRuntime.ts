@@ -7,6 +7,7 @@ import {
   ProviderSettingsFacade,
   createFailClosedAccountProviderConfigSnapshot,
   type AccountProviderConfigSnapshot,
+  type ModelSelection,
   type ProviderConfigSnapshot,
   type ProviderSettingsMutationTarget,
   type ProviderSource,
@@ -24,6 +25,68 @@ import {
   type ModelSelectionConfiguredDefaultSource,
   type ProviderSettingsConnectivityTester,
 } from "./providerFacadeServices.js";
+
+/** 1.4.21 默认模型策略认定的 GLM-5.3-Flash（个人小写 / 套餐规范两种 id）。 */
+const GLM_FLASH_MODEL_IDS = new Set(["glm-5.3-flash", "GLM-5.3-Flash"]);
+
+/**
+ * 1.4.21 默认模型策略：配置缺省或指向小米（mimo-*）默认时，新草稿的初始
+ * 推荐优先 GLM-5.3-Flash。只包装 getView 的 configuredDefault 入参——不回写
+ * provider_config.json、不触碰历史会话已钉死的选择，其它供应商/模型的自选
+ * 默认原样放行。Registry 未就绪或无 Flash 时退回原配置（fail-open）。
+ */
+class GlmFlashDefaultSelectionPolicySource {
+  readonly #inner: ModelSelectionConfiguredDefaultSource;
+  readonly #registryGetter: () => ProviderRegistryService | null;
+
+  constructor(
+    inner: ModelSelectionConfiguredDefaultSource,
+    registryGetter: () => ProviderRegistryService | null,
+  ) {
+    this.#inner = inner;
+    this.#registryGetter = registryGetter;
+  }
+
+  async read(): Promise<ModelSelection | undefined> {
+    const configured = await this.#inner.read();
+    if (configured && !configured.modelId.toLowerCase().startsWith("mimo")) {
+      return configured;
+    }
+    return this.#findGlmFlashSelection() ?? configured;
+  }
+
+  onDidChange(listener: () => void): () => void {
+    return this.#inner.onDidChange?.(listener) ?? (() => {});
+  }
+
+  #findGlmFlashSelection(): ModelSelection | undefined {
+    let snapshot;
+    try {
+      snapshot = this.#registryGetter()?.getSnapshot();
+    } catch {
+      return undefined;
+    }
+    const registry = snapshot?.registry;
+    if (!registry) return undefined;
+    for (const provider of registry.providers) {
+      if (provider.config.visibility === "hidden") continue;
+      for (const model of provider.models) {
+        if (!GLM_FLASH_MODEL_IDS.has(model.modelId)) continue;
+        const levels = model.config.optionSpecs.reasoningLevel.values;
+        const reasoningLevel = levels.includes("max")
+          ? "max"
+          : levels[levels.length - 1];
+        if (!reasoningLevel) continue;
+        return {
+          providerId: provider.providerId,
+          modelId: model.modelId,
+          options: { reasoningLevel },
+        };
+      }
+    }
+    return undefined;
+  }
+}
 
 export interface ProviderRuntimeOptions extends ProviderConfigRuntimeOptions {
   readonly accountSource?: RefreshableProviderSource<AccountProviderConfigSnapshot>;
@@ -199,14 +262,22 @@ export function createProviderRuntime(options: ProviderRuntimeOptions): Provider
   const modelSelectionConfiguredDefaultSource = new NodeModelSelectionConfigRepository({
     personalRepository: configRuntime.personalRepository,
   });
-  return createProviderRuntimeFromConfigRuntime({
+  // 1.4.21：缺省/小米默认 → GLM-5.3-Flash（仅视图层初始推荐，不回写配置）。
+  // Registry 由 ProviderRuntime 构造，这里用惰性 holder 取运行时内的共享实例。
+  let runtimeRegistry: ProviderRegistryService | null = null;
+  const runtime = createProviderRuntimeFromConfigRuntime({
     configRuntime,
     accountSource,
     testConnectivity,
-    modelSelectionConfiguredDefaultSource,
+    modelSelectionConfiguredDefaultSource: new GlmFlashDefaultSelectionPolicySource(
+      modelSelectionConfiguredDefaultSource,
+      () => runtimeRegistry,
+    ),
     disposeModelSelectionConfiguredDefaultSource: () =>
       modelSelectionConfiguredDefaultSource.dispose(),
   });
+  runtimeRegistry = runtime.registryService;
+  return runtime;
 }
 
 export function createProviderRuntimeFromConfigRuntime(

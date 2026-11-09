@@ -137,7 +137,7 @@ describe('1.4.10 回归：1.4.9 回工作台 / 1.4.8 顶空条不回退', () => 
     )
   })
 
-  it('VERSION == 1.4.20（网关无鉴权硬化刀 bump）', () => {
-    expect(VERSION).toBe('1.4.20')
+  it('VERSION == 1.4.21（壳 GLM-Flash 默认刀 bump）', () => {
+    expect(VERSION).toBe('1.4.21')
   })
 })

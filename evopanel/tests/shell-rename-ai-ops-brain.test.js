@@ -37,8 +37,8 @@ describe('1.4.19 应用改名 · 配置层', () => {
     // PolyForm Required Notice：归属保留上游真名 EvoFlow，且不得再嵌旧名双写
     expect(TAURI_CONF.bundle.longDescription).toContain('基于 EvoFlow（EvovexAI')
     expect(TAURI_CONF.bundle.longDescription).not.toContain(LEGACY)
-    // 版本钉随刀抬：壳合入刀（1419 改名 + 1420 硬化）交付 1.4.20
-    expect(TAURI_CONF.version).toBe('1.4.20')
+    // 版本钉随刀抬：1.4.21 壳 GLM-Flash 默认刀在前代 1.4.20 合入 tip 之上
+    expect(TAURI_CONF.version).toBe('1.4.21')
   })
 
   it('身份标识严禁改：identifier / 可执行 / scheme / 数据根保持 evoflow 系', () => {

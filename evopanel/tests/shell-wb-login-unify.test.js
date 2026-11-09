@@ -101,8 +101,8 @@ describe('1.4.15 文案与常量', () => {
     expect(WORKBENCH_URLS).toContain("WORKBENCH_HOME_URL = 'https://workbench.kll666.cn/'")
   })
 
-  it('VERSION = 1.4.20（网关无鉴权硬化刀 bump；登录统一业务测例不变）', () => {
-    expect(VERSION).toBe('1.4.20')
+  it('VERSION = 1.4.21（壳 GLM-Flash 默认刀 bump；登录统一业务测例不变）', () => {
+    expect(VERSION).toBe('1.4.21')
   })
 })
 

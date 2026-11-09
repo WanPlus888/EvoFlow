@@ -395,6 +395,35 @@ async def run_background_startup(app: FastAPI, st_log: StLogFn, _st: Any) -> Non
         logger.exception(error_msg)
         raise RuntimeError(error_msg) from e
 
+    # ---- 1.4.21: 智谱 Coding Plan 目录投影 + primary 迁移（幂等，非致命）----
+    # 运营大脑目录 = evoflow_models；把用户在 ZCode 供应商设置里配好的智谱
+    # GLM（含 glm-5.3-flash）投影进来，并把空/小米残留 primary 迁到 Flash。
+    # 无 bigmodel 供应商配置时安静跳过；Key 不入日志。
+    try:
+        from evoflow.plans.zhipu_coding_plan_models import (
+            migrate_primary_to_glm_flash,
+            upsert_zhipu_coding_plan_models,
+        )
+
+        def _zhipu_hydrate() -> tuple[dict, str | None]:
+            proj = upsert_zhipu_coding_plan_models()
+            new_primary = migrate_primary_to_glm_flash()
+            if proj["count"] or new_primary:
+                from evoflow.config import reload_models_from_db
+
+                reload_models_from_db()
+            return proj, new_primary
+
+        _proj, _new_primary = await asyncio.to_thread(_zhipu_hydrate)
+        if _proj["count"] or _new_primary:
+            logger.info(
+                "zhipu coding-plan hydrate: projected=%d primary_migrated=%s",
+                _proj["count"],
+                bool(_new_primary),
+            )
+    except Exception:
+        logger.warning("zhipu coding-plan hydrate failed (non-fatal)", exc_info=True)
+
     # ---- Register built-in capabilities into the open-capability registry ----
     # Runs after Phase 2 (agents materialized + DB ready) so capability handlers
     # can lazily import the now-initialized services. Idempotent: safe to call

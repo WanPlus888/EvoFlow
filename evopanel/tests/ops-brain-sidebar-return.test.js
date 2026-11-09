@@ -245,7 +245,7 @@ describe('1.4.14 禁区：零千川生产写符号；VERSION', () => {
     }
   })
 
-  it('VERSION == 1.4.20（网关无鉴权硬化刀 bump）', () => {
-    expect(VERSION).toBe('1.4.20')
+  it('VERSION == 1.4.21（壳 GLM-Flash 默认刀 bump）', () => {
+    expect(VERSION).toBe('1.4.21')
   })
 })

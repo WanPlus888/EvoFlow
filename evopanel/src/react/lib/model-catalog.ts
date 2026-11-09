@@ -171,20 +171,39 @@ export function buildModelConnNameMap(
   return connNameMap
 }
 
+/**
+ * 1.4.21 默认模型回落守卫：primary 缺失/失效时的目录回落不得停在小米默认
+ * （mimo-*），目录存在 GLM-5.3-Flash 时优先 Flash。只作用于「无会话钉死、
+ * 无智能体默认」的兜底链；会话已显式钉死的 model_name 仍按原样保留。
+ */
+const XIAOMI_DEFAULT_FALLBACK_PREFIX = 'mimo'
+const GLM_FLASH_CATALOG_NAMES = new Set(['glm-5.3-flash', 'GLM-5.3-Flash'])
+
+function preferGlmFlashOverXiaomiDefault(
+  catalog: ModelCatalogEntry[],
+  candidate: string,
+): string {
+  if (!candidate || !candidate.toLowerCase().startsWith(XIAOMI_DEFAULT_FALLBACK_PREFIX)) {
+    return candidate
+  }
+  const flash = catalog.find((e) => GLM_FLASH_CATALOG_NAMES.has(e.name))
+  return flash ? flash.name : candidate
+}
+
 export function resolveSessionModelName(
   catalog: ModelCatalogEntry[],
   options: {
     sessionContextModel?: string | null
     userPillModel?: string
-    primaryModel?: string
+    primaryModel?: string | null
     fromSessionSwitch?: boolean
   },
 ): string {
   const inCatalog = (n: string) => !!(n && catalog.some((e) => e.name === n))
   const fallback = () => {
     const primary = (options.primaryModel || '').trim()
-    if (inCatalog(primary)) return primary
-    return catalog[0]?.name || ''
+    if (inCatalog(primary)) return preferGlmFlashOverXiaomiDefault(catalog, primary)
+    return preferGlmFlashOverXiaomiDefault(catalog, catalog[0]?.name || '')
   }
 
   if (options.fromSessionSwitch) {
