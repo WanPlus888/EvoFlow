@@ -13,12 +13,15 @@ export function runShellWindowListenersEffect(ctx: RunShellWindowListenersEffect
     handleOpenHomeRef,
     isChatOverlayDeferActive,
     openCollabExecPanel,
+    preferHomeDashboardRef,
     pushComposerText,
     reviveAllTurnBusyIfLivePostOpen,
     scheduleBumpRef,
     selectSessionFromShellRef,
+    sessionRef,
     setChatSurfaceVisible,
     setMobileChatPane,
+    setPreferHomeDashboard,
   } = ctx
     const onNew = () => {
       if (typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches) {
@@ -122,6 +125,31 @@ export function runShellWindowListenersEffect(ctx: RunShellWindowListenersEffect
       if (!key) return
       selectSessionFromShellRef.current(key)
     }
+    /**
+     * 1.4.16 运营大脑回程（侧栏「运营大脑」→ shell-aside 派发）：
+     * reenterOpsBotMode 只切 bot 表现态；已在 /chat 且 preferHomeDashboard=true 时
+     * 主区仍挂 EvoFlowHomeDashboard（驾驶舱首页），必须在此清首页意图并尽量回到
+     * 上一会话（handleOpenHome 记的 ef-ops-bot-last-session），兜底空白聊天草稿。
+     */
+    const onOpsBrainReenter = () => {
+      // 1) 先同步清「驾驶舱首页」意图（ref 先行，防 refresh 把空选中当首页回填）
+      if (preferHomeDashboardRef) preferHomeDashboardRef.current = false
+      setPreferHomeDashboard?.(false)
+      // 2) 有上一会话 → 回它（selectSessionFromShell 会再清一次 preferHome 并落 sessionKey）
+      let lastSession = ''
+      try {
+        lastSession = String(sessionStorage.getItem('ef-ops-bot-last-session') || '').trim()
+      } catch {
+        lastSession = ''
+      }
+      if (lastSession) {
+        selectSessionFromShellRef.current(lastSession)
+        return
+      }
+      // 3) 无记录但已在某会话上 → 只清 preferHome 即可；4) 全空 → 空白聊天草稿（绝不回驾驶舱）
+      if (String(sessionRef?.current || '').trim()) return
+      void handleNewSessionRef.current?.()
+    }
     window.addEventListener('evopanel:shell-new-session', onNew)
     window.addEventListener('evopanel:shell-open-home', onOpenHome)
     window.addEventListener('evopanel:mobile-chat-list', onMobileChatList)
@@ -129,6 +157,7 @@ export function runShellWindowListenersEffect(ctx: RunShellWindowListenersEffect
     window.addEventListener('evopanel:settings-modal-opened', onSettingsModalOpened)
     window.addEventListener('evopanel:settings-modal-closed', onSettingsModalClosed)
     window.addEventListener('evopanel:chat-route-shown', onChatRouteShown)
+    window.addEventListener('evopanel:ops-brain-reenter', onOpsBrainReenter)
     return () => {
       window.removeEventListener('evopanel:shell-new-session', onNew)
       window.removeEventListener('evopanel:shell-open-home', onOpenHome)
@@ -137,5 +166,6 @@ export function runShellWindowListenersEffect(ctx: RunShellWindowListenersEffect
       window.removeEventListener('evopanel:settings-modal-opened', onSettingsModalOpened)
       window.removeEventListener('evopanel:settings-modal-closed', onSettingsModalClosed)
       window.removeEventListener('evopanel:chat-route-shown', onChatRouteShown)
+      window.removeEventListener('evopanel:ops-brain-reenter', onOpsBrainReenter)
     }
 }

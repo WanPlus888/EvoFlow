@@ -1,12 +1,12 @@
 {
-  "version": "1.4.15",
-  "minAppVersion": "1.4.15",
+  "version": "1.4.16",
+  "minAppVersion": "1.4.16",
   "updateKind": "full",
   "assetKind": "installer",
   "hash": "",
   "url": "https://localhost/evoflow-fork-auto-update-disabled.json",
   "size": 0,
-  "changelog": "电商运营终端 1.4.15：壳「切换用户」主路径改用 AI 工作台账号密码（与工作台网页同一套账密）；本机免登管理员与「本机运维登录」旁路保留。自动更新关闭。",
+  "changelog": "电商运营终端 1.4.16：修「驾驶舱首页点侧栏运营大脑回不到聊天」——回程现在会离开驾驶舱首页并回到上一条会话（没有则开空白聊天）；「更多运营能力」退出与「回工作台」行为不变。自动更新关闭。",
   "notes": "brand fork; updater disabled; do not publish EvovexAI update URLs",
   "publishedAt": "2026-11-07T00:00:00Z"
 }

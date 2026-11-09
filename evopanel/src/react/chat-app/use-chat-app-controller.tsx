@@ -6207,6 +6207,13 @@ export function useChatAppController() {
 
     const oldSk = String(selectedSessionKey || sessionRef.current || '').trim()
     if (oldSk) {
+      // 1.4.16 运营大脑回程：进首页前记住上一会话；evopanel:ops-brain-reenter
+      // 监听（install-shell-window-listeners）据此回到原聊天，而不是停在驾驶舱仪表盘
+      try {
+        sessionStorage.setItem('ef-ops-bot-last-session', oldSk)
+      } catch {
+        /* ignore */
+      }
       const prevRt = getSessionRuntime(oldSk)
       commitActiveSessionRuntime(oldSk, {
         rows: rowsRef.current,
@@ -6502,12 +6509,15 @@ export function useChatAppController() {
       handleOpenHomeRef,
       isChatOverlayDeferActive,
       openCollabExecPanel,
+      preferHomeDashboardRef,
       pushComposerText,
       reviveAllTurnBusyIfLivePostOpen,
       scheduleBumpRef,
       selectSessionFromShellRef,
+      sessionRef,
       setChatSurfaceVisible,
       setMobileChatPane,
+      setPreferHomeDashboard,
     })
   }, [])
 

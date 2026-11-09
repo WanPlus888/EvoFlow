@@ -235,7 +235,7 @@ describe('1.4.13 预填链路硬安全（专员条/handoff 卡同规约）', () 
 })
 
 describe('1.4.13 版本', () => {
-  it('VERSION === 1.4.15（1.4.15 登录统一刀 bump）', () => {
-    expect(VERSION).toBe('1.4.15')
+  it('VERSION === 1.4.16（1.4.16 回程离开首页刀 bump）', () => {
+    expect(VERSION).toBe('1.4.16')
   })
 })

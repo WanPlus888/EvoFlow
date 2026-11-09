@@ -4,11 +4,18 @@
  * - 点击 = 清 ef-ops-bot-exited（reenterOpsBotMode）+ enterOpsBotMode + navigate('/chat')
  * - 「更多运营能力」仍 exitOpsBotMode + 写 exited；「回工作台」行为不变
  * - bot-mode CSS 不藏 aside 导航（新入口在 bot-mode 与全壳均可达）
+ * 1.4.16 回程离开驾驶舱首页（补刀）：
+ * - 回程分支在 reenter + navigate 后补发 evopanel:ops-brain-reenter（同 hash 无 hashchange，
+ *   只靠 navigate 不离开 preferHomeDashboard 驾驶舱首页）
+ * - handleOpenHome 清空 sessionKey 前记 ef-ops-bot-last-session；reenter 监听清首页意图
+ *   并恢复上一会话，兜底空白聊天（绝不 handleOpenHome 回驾驶舱）
+ * - 行为测例：真实跑 runShellWindowListenersEffect 派发事件验证状态迁移
  * 源码断言风格与 workbench-return-nav / ops-bot-mode 一致。
  */
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { runShellWindowListenersEffect } from '../src/react/chat-app/shell/install-shell-window-listeners.ts'
 
 // vitest 的 root 即 evopanel/（见 workbench-mode-shell.test.js 同款注释）
 const ROOT = process.cwd()
@@ -16,6 +23,11 @@ const SHELL_ASIDE = readFileSync(join(ROOT, 'src/components/shell-aside.js'), 'u
 const OPS_BOT_MODE = readFileSync(join(ROOT, 'src/components/ops-bot-mode.js'), 'utf8')
 const WORKSPACE_CSS = readFileSync(join(ROOT, 'src/style/enterprise-workspace.css'), 'utf8')
 const LAYOUT_CSS = readFileSync(join(ROOT, 'src/style/layout.css'), 'utf8')
+const SHELL_LISTENERS = readFileSync(
+  join(ROOT, 'src/react/chat-app/shell/install-shell-window-listeners.ts'),
+  'utf8',
+)
+const CONTROLLER = readFileSync(join(ROOT, 'src/react/chat-app/use-chat-app-controller.tsx'), 'utf8')
 const VERSION = readFileSync(join(ROOT, 'VERSION'), 'utf8').trim()
 
 describe('1.4.14 侧栏「运营大脑」常驻项：回工作台正下方、不进「更多」折叠区', () => {
@@ -104,6 +116,128 @@ describe('1.4.14 样式与显隐：紫系次级强调；bot-mode 不藏侧栏导
   })
 })
 
+describe('1.4.16 回程离开驾驶舱首页：事件链（源码断言）', () => {
+  it('enter-ops-brain 分支：reenterOpsBotMode + navigate(/chat) 后派发 evopanel:ops-brain-reenter', () => {
+    const branch = SHELL_ASIDE.match(/if \(opsBrainBtn\) \{[\s\S]*?\n    \}/)?.[0] ?? ''
+    expect(branch).toContain('reenterOpsBotMode()')
+    expect(branch).toContain("navigate('/chat')")
+    expect(branch).toContain('evopanel:ops-brain-reenter')
+    // 派发必须存在且不早于 navigate（navigate 同 hash 无事件，补刀事件负责离开首页）
+    expect(branch.indexOf("navigate('/chat')")).toBeLessThan(branch.indexOf('evopanel:ops-brain-reenter'))
+  })
+
+  it('handleOpenHome：清空 sessionKey 之前记 ef-ops-bot-last-session（回程恢复依据）', () => {
+    const fn = CONTROLLER.match(/function handleOpenHome\(\) \{[\s\S]*?\n  \}/)?.[0] ?? ''
+    expect(fn).toContain("'ef-ops-bot-last-session'")
+    expect(fn.indexOf('const oldSk')).toBeLessThan(fn.indexOf("'ef-ops-bot-last-session'"))
+    expect(fn.indexOf("'ef-ops-bot-last-session'")).toBeLessThan(fn.indexOf("setSelectedSessionKey('')"))
+  })
+
+  it('reenter 监听：清 preferHome → last-session 恢复 / 已有会话 no-op / 兜底新会话；绝不 handleOpenHome', () => {
+    expect(SHELL_LISTENERS).toContain("'evopanel:ops-brain-reenter'")
+    const fn = SHELL_LISTENERS.match(/const onOpsBrainReenter = \(\) => \{[\s\S]*?\n    \}/)?.[0] ?? ''
+    expect(fn).toContain('preferHomeDashboardRef.current = false')
+    expect(fn).toContain('setPreferHomeDashboard?.(false)')
+    expect(fn).toContain("'ef-ops-bot-last-session'")
+    expect(fn).toContain('selectSessionFromShellRef.current(lastSession)')
+    expect(fn).toContain('handleNewSessionRef.current?.()')
+    // 回程绝不把用户再送回驾驶舱首页
+    expect(fn).not.toContain('handleOpenHomeRef')
+    // add/removeEventListener 对称注册（无泄漏）
+    expect(SHELL_LISTENERS).toMatch(/addEventListener\('evopanel:ops-brain-reenter', onOpsBrainReenter\)/)
+    expect(SHELL_LISTENERS).toMatch(/removeEventListener\('evopanel:ops-brain-reenter', onOpsBrainReenter\)/)
+  })
+
+  it('controller ctx 接线：preferHomeDashboardRef / sessionRef / setPreferHomeDashboard 传入监听 effect', () => {
+    const call = CONTROLLER.match(/runShellWindowListenersEffect\(\{[\s\S]*?\n    \}\)/)?.[0] ?? ''
+    expect(call).toContain('preferHomeDashboardRef')
+    expect(call).toContain('sessionRef')
+    expect(call).toContain('setPreferHomeDashboard')
+  })
+
+  it('reenterOpsBotMode 注释写明边界：单靠它 + navigate 不会离开首页仪表盘', () => {
+    const doc = OPS_BOT_MODE.match(/\/\*\*[\s\S]*?export function reenterOpsBotMode/)?.[0] ?? ''
+    expect(doc).toContain('evopanel:ops-brain-reenter')
+    expect(doc).toContain('不会离开首页仪表盘')
+  })
+})
+
+describe('1.4.16 行为测例：preferHome=true 停在驾驶舱首页时派发 reenter 事件', () => {
+  function setupListeners() {
+    const state = {
+      preferHomeDashboardRef: { current: true },
+      setPreferHomeDashboard: vi.fn(),
+      sessionRef: { current: '' },
+      selectSessionFromShell: vi.fn(),
+      handleNewSession: vi.fn(),
+      handleOpenHome: vi.fn(),
+    }
+    const cleanup = runShellWindowListenersEffect({
+      cancelPendingStreamUiBumpsRef: { current: () => {} },
+      handleNewSessionRef: { current: state.handleNewSession },
+      handleOpenHomeRef: { current: state.handleOpenHome },
+      isChatOverlayDeferActive: () => false,
+      openCollabExecPanel: vi.fn(),
+      preferHomeDashboardRef: state.preferHomeDashboardRef,
+      pushComposerText: vi.fn(),
+      reviveAllTurnBusyIfLivePostOpen: vi.fn(),
+      scheduleBumpRef: { current: vi.fn() },
+      selectSessionFromShellRef: { current: state.selectSessionFromShell },
+      sessionRef: state.sessionRef,
+      setChatSurfaceVisible: vi.fn(),
+      setMobileChatPane: vi.fn(),
+      setPreferHomeDashboard: state.setPreferHomeDashboard,
+    })
+    return { state, cleanup }
+  }
+
+  it('无 last-session + 空会话：清 preferHome + 空白新会话（handleOpenHome 绝不被调）', () => {
+    sessionStorage.clear()
+    const { state, cleanup } = setupListeners()
+    try {
+      window.dispatchEvent(new CustomEvent('evopanel:ops-brain-reenter'))
+      expect(state.preferHomeDashboardRef.current).toBe(false)
+      expect(state.setPreferHomeDashboard).toHaveBeenCalledWith(false)
+      expect(state.handleNewSession).toHaveBeenCalledTimes(1)
+      expect(state.selectSessionFromShell).not.toHaveBeenCalled()
+      // 回程绝不能再触发「打开驾驶舱首页」
+      expect(state.handleOpenHome).not.toHaveBeenCalled()
+    } finally {
+      cleanup()
+    }
+  })
+
+  it('有 ef-ops-bot-last-session：恢复上一会话，不开新会话', () => {
+    sessionStorage.clear()
+    sessionStorage.setItem('ef-ops-bot-last-session', 'ops-session-1024')
+    const { state, cleanup } = setupListeners()
+    try {
+      window.dispatchEvent(new CustomEvent('evopanel:ops-brain-reenter'))
+      expect(state.selectSessionFromShell).toHaveBeenCalledWith('ops-session-1024')
+      expect(state.handleNewSession).not.toHaveBeenCalled()
+      expect(state.preferHomeDashboardRef.current).toBe(false)
+    } finally {
+      cleanup()
+      sessionStorage.clear()
+    }
+  })
+
+  it('无记录但已在会话上：只清首页意图（no-op，不误开新会话）', () => {
+    sessionStorage.clear()
+    const { state, cleanup } = setupListeners()
+    state.sessionRef.current = 'cur-session-7'
+    try {
+      window.dispatchEvent(new CustomEvent('evopanel:ops-brain-reenter'))
+      expect(state.preferHomeDashboardRef.current).toBe(false)
+      expect(state.setPreferHomeDashboard).toHaveBeenCalledWith(false)
+      expect(state.selectSessionFromShell).not.toHaveBeenCalled()
+      expect(state.handleNewSession).not.toHaveBeenCalled()
+    } finally {
+      cleanup()
+    }
+  })
+})
+
 describe('1.4.14 禁区：零千川生产写符号；VERSION', () => {
   it('本刀源码不含 qianchuan / oceanengine 生产写链', () => {
     for (const src of [SHELL_ASIDE, OPS_BOT_MODE, WORKSPACE_CSS]) {
@@ -111,7 +245,7 @@ describe('1.4.14 禁区：零千川生产写符号；VERSION', () => {
     }
   })
 
-  it('VERSION == 1.4.15（1.4.15 登录统一刀 bump）', () => {
-    expect(VERSION).toBe('1.4.15')
+  it('VERSION == 1.4.16', () => {
+    expect(VERSION).toBe('1.4.16')
   })
 })

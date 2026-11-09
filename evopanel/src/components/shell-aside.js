@@ -441,10 +441,17 @@ function _bindShell(el) {
     // 1.4.14 侧栏「运营大脑」回程：清 ef-ops-bot-exited + 强制 enterOpsBotMode + /chat。
     // 必须直接 enter（同 hash 不触发 hashchange，不能指望路由钩子）；
     // 勿落入下方通用 data-shell-nav 分支——那只是驾驶舱全壳导航。
+    // 1.4.16 补刀：已在 /chat 且停在驾驶舱首页（preferHomeDashboard）时 navigate 不产生
+    // hashchange，ChatApp 不会自己离开首页——必须再发 reenter 事件让主区退出首页表面。
     const opsBrainBtn = e.target.closest('[data-act="enter-ops-brain"]')
     if (opsBrainBtn) {
       reenterOpsBotMode()
       navigate('/chat')
+      try {
+        window.dispatchEvent(new CustomEvent('evopanel:ops-brain-reenter'))
+      } catch {
+        /* ignore */
+      }
       _closeMobileShell()
       return
     }

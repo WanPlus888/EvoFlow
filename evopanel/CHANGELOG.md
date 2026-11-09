@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.4.16] - 2026-11-09
+
+**运营大脑回程补刀：离开驾驶舱首页 + 恢复上一会话**（修 1.4.14 回程只切 bot 旗标、不退 `preferHomeDashboard` 的缺口；叠在已审 1.4.15 登录统一 tip 之上）。
+
+### 本版要点
+
+- **症状**：Bot 聊天 → 侧栏「驾驶舱」（`handleOpenHome` 置 `preferHomeDashboard` 并清 sessionKey，主区挂 `EvoFlowHomeDashboard`）→ 再点侧栏「运营大脑」：1.4.14 只做 `reenterOpsBotMode()` + `navigate('/chat')`，已在 `/chat` 时无 hashchange，主区停在驾驶舱首页，bot-mode 又藏了会话列表 → 「回不到之前聊天」
+- **事件链**：`shell-aside.js` 回程分支在 reenter + navigate 后补发 `evopanel:ops-brain-reenter`；`install-shell-window-listeners.ts` 新监听：清 `preferHomeDashboardRef`/`setPreferHomeDashboard(false)` → 有 `ef-ops-bot-last-session`（`handleOpenHome` 清空 sessionKey 之前记录）则 `selectSessionFromShell` 回上一会话 → 当前已有会话则只清首页意图 → 全空则 `handleNewSession` 空白聊天草稿（绝不 `handleOpenHome` 回驾驶舱）
+- **不回退项**：「更多运营能力」仍 `exitOpsBotMode` + 写 exited；「回工作台」仍 `#/workbench-home`；「驾驶舱」仍进首页（不改成 bot-mode）；bot-mode 生命周期与 1.4.13 多 Bot 分岗不动
+- **测例**：`ops-brain-sidebar-return.test.js` 扩 8 例（事件链源码断言 / `handleOpenHome` 记会话 / 行为测例：preferHome=true+空会话派发 reenter → 清首页意图走新会话、有 last-session → 恢复会话、已有会话 → no-op / 回程绝不调 handleOpenHome）；拨 5 处 VERSION 断言 1.4.14 → 1.4.16
+
+### 参与本次发版
+
+- 全栈开发工程师：运营大脑回程离开首页事件链、上一会话恢复、行为测例
+
+### 明确未做
+
+- 不改登录统一业务逻辑（1.4.15 文件只叠 tip）；不动工作台仓；不碰千川 / 投放生产写；`_syncNavActive` 给 `nav-ops-brain` 高亮（§4.4 可选项）未做——跨模块高亮同步有退出路径 stale 边界，未审不扩刀；未审不装 /Applications；不打 Win；updater 仍关
+
 ## [1.4.15] - 2026-11-09
 
 **壳登录统一方案1：「切换用户」主路径改调 AI 工作台账密，两处一套账密**（Local Admin 免登与运维旁路全保留）。
@@ -24,6 +43,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ### 明确未做
 
 - 不动工作台仓（zhuhongftam，Gateway 代理下零改）；不打通托盘 SSO 与壳 JWT；不迁移/删除 `evoflow_webui_users`；不修 iframe ITP cookie；不碰千川 / 投放生产写；未审不装 /Applications；不打 Win；updater 仍关；工作台 token 不下发不落库
+
 
 ## [1.4.14] - 2026-11-09
 

@@ -107,6 +107,11 @@ export function isOpsBotMode() {
  * 冷启 initOpsBotMode 只在无 exited 标记时自动进；用户离开 /chat 后（exited=1），
  * 从全壳任意页回 Bot 聊天必须走本 helper（或等价的清标记 + enter），
  * 不能只 navigate('/chat')——那会落在驾驶舱全壳态且不进 bot-mode。
+ *
+ * 1.4.16 边界：本 helper 只切 bot 表现态（sessionStorage + #app class），
+ * 不碰 React 侧 preferHomeDashboard——已在 /chat 且停在驾驶舱首页时，
+ * 必须配合 shell-aside 派发的 evopanel:ops-brain-reenter 事件（ChatApp 清首页
+ * 意图并恢复上一会话），单靠 reenterOpsBotMode + navigate 不会离开首页仪表盘。
  */
 export function reenterOpsBotMode() {
   try {
