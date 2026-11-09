@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.4.18] - 2026-11-09
+
+**运营终端账号默认 = 工作台账号（account sync）**：工作台 iframe 登录/换号，壳账号自动跟随；壳侧「切换用户」成功后反向给工作台 iframe 免登。零改工作台仓（复用其既有 pywebview SSO 契约）。
+
+### 本版要点
+
+- **根因**：两套登录态完全独立——工作台在壳里是跨域 iframe（`wb_token` 存 iframe 源的 localStorage/cookie，壳拿不到），壳冷启默认免登 Local Admin（`resolve_request_principal` → `get_or_create_local_admin`）；1.4.15 的登录统一只覆盖壳侧「切换用户」页，工作台 iframe 登录不会回写壳。且本机壳连的远程网关尚未带上 1.4.15 接口（`login-workbench` 404）
+- **iframe SSO 垫片**（`evopanel/src-tauri/src/workbench_sso_shim.js`，main 窗改 `create:false` 由 lib.rs 手工建窗注入所有 frame；运营悬浮窗同源注入）：只在工作台源 + 父源是壳的 iframe 里活，桥接工作台 pywebview 契约——`wb_token` 出现/变化（boot/login/change）postMessage 给壳；工作台未登录时向壳要 token 一次性种下（写 localStorage + cookie + reload，`ef-wb-sso-seeded` 防循环）；**密码永不出 iframe**（`sso_save` 的 password 参数即收即弃）；外部浏览器打开工作台零影响（守卫全 return，`window.pywebview` 不存在）
+- **账号同步器**（`evopanel/src/lib/workbench-account-sync.js`）：只收工作台源且 source 为页面内 iframe 的消息（AC8）；调网关新接口 `POST /api/webui/login-workbench-token` 验真换壳 JWT → 同账号 no-op（不清缓存不刷新）/ 不同账号静默换号 + toast「已同步为工作台账号 @x」；`/workbench-home` 下不 reload（防 iframe 重载循环），其他路由同号只 reload 一次；工作台退出（token=null）不动壳（P0）；404/405（网关未升级）只 toast 一次，401/5xx 静默；「本机运维登录」（`?local=1`）置 `ef-local-ops-pin` 本会话不被覆盖，退出账号恢复自动同步
+- **网关新接口**：`workbench_auth.workbench_me()`（`GET {workbench}/api/auth/me` 验真，错误契约对齐 `workbench_login`：401/403→401「工作台登录已失效」、超时/连接失败→503、无 username→502，token 永不入日志）；`POST /api/webui/login-workbench-token` 复用 `_mint_workbench_jwt`（从 `login_workbench` 原样抽出）；`/login-workbench` 响应新增 `workbench_token`（一次性回传供壳种 iframe，网关不持久化；`/login` 不回传）
+- **Local Admin 数据不丢**（`ensure_workbench_principal` 新增解析步 2.5）：该 org **首个**工作台 **admin** 认领本机免登身份（local-admin）——只加 identity 行 + attrs 合并 `workbench_username`，不改 principal_id/display_name；此前 Local Admin 下的会话/资产/设置原样归到工作台账号（AC1）。第二个及以后的工作台账号、非 admin 一律新建，绝不认领
+- **测试**：新增 `backend/tests/test_webui_login_workbench_token.py`（httpx mock + DB 认领，27 例）、`evopanel/tests/workbench-account-sync.test.js`（17 例）、`evopanel/tests/workbench-sso-shim.test.js`（node vm，13 例）；既有 `test_endpoint_200_mints_shell_jwt` 按 1.4.18 契约更新（`workbench_token` 刻意回传）；vitest include 列表登记两个新文件
+- **依赖**：远程网关需升级到 ≥1.4.18（带上 `login-workbench` + `login-workbench-token`）本刀才在「远程网关模式」下生效；**远程网关未升级前，连旧网关只提示一次「网关未升级，账号暂不能自动同步」，不掉登录、不循环**（AC6）。远程网关升级属上产动作，须审查过 + Jennifer 点名 + 运维执行
+
+### 明确未做
+
+- 不打 DMG、不装 `/Applications`、不推 origin、不上产、不碰远程网关与 `~/.evoflow` 配置
+- 不改工作台仓（/opt/workbench 等 wt 只读）；不碰千川 / 投放生产写；updater 仍关
+- `scripts/maintainer/update/latest.json` 与 PRODUCT-NOTES 等发版三份说明留给发版刀
+
 ## [1.4.17] - 2026-11-09
 
 **壳补刀：强制重编内置 gateway sidecar，修复「切换用户」登录统一 404**（1.4.16 桌面壳配的仍是 1.4.14 旧 gateway；登录统一业务源码 1.4.15 `78a2f51` 已在 tip，只是装包没带上）。

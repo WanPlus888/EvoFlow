@@ -245,7 +245,7 @@ describe('1.4.14 禁区：零千川生产写符号；VERSION', () => {
     }
   })
 
-  it('VERSION == 1.4.17', () => {
-    expect(VERSION).toBe('1.4.17')
+  it('VERSION == 1.4.18（账号同步刀 bump）', () => {
+    expect(VERSION).toBe('1.4.18')
   })
 })

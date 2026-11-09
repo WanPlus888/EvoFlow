@@ -275,6 +275,20 @@ function wireLoginEvents(root, opts) {
         : await login({ username, password })
       prepareAccountSwitch(resp.token)
       saveAuthToken(resp.token)
+      // 1.4.18 账号同步：工作台登录成功后记下工作台 token（本会话内供
+      // iframe sso-request 免登应答，AC3），并清掉本机运维 pin 恢复自动同步。
+      try {
+        if (useWorkbench) {
+          if (resp.workbench_token) {
+            sessionStorage.setItem('evoflow_wb_sso_token', resp.workbench_token)
+          }
+          sessionStorage.removeItem('ef-local-ops-pin')
+        } else if (localOpsMode) {
+          sessionStorage.setItem('ef-local-ops-pin', '1')
+        }
+      } catch {
+        /* 隐私模式等：跳过，不影响登录主流程 */
+      }
       const target = redirect.startsWith('/') ? redirect : `/${redirect}`
       window.location.hash = target
       window.location.reload()

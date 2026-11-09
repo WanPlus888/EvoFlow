@@ -166,6 +166,12 @@ export function navigateSwitchUser(redirect = '/chat') {
 export function logoutToLocalAdmin() {
   clearAccountLocalState({ clearIndexedDb: true })
   clearAuthToken()
+  // 1.4.18 账号同步：退出账号时连工作台 token 一起清，恢复自动跟随（AC5）。
+  try {
+    sessionStorage.removeItem('evoflow_wb_sso_token')
+  } catch {
+    /* ignore */
+  }
   const path = (window.location.hash || '#/chat').replace(/^#/, '') || '/chat'
   if (path.startsWith('/login')) {
     window.location.hash = '/chat'
@@ -190,7 +196,8 @@ export function sessionLabel(me) {
 export function sessionHint(me) {
   if (!me) return hasAuthToken() ? '正在同步身份' : ''
   if (me.authSource === 'jwt' || getAuthToken()) {
-    return me.username ? `@${me.username}` : '已登录'
+    // 1.4.18 账号同步：日常 JWT 会话即工作台账号（登录统一方案1 主路径）。
+    return me.username ? `@${me.username} · 工作台账号` : '已登录'
   }
   if (me.isOrgAdmin) return '本机免登 · 管理员'
   return '本机免登'

@@ -1,6 +1,7 @@
 /**
  * WebUI remote-access API client.
- * Backend: /api/webui/* (status, enable, disable, login, login-workbench, qr-login, credentials, qr-token).
+ * Backend: /api/webui/* (status, enable, disable, login, login-workbench,
+ * login-workbench-token, qr-login, credentials, qr-token).
  */
 
 import { gatewayProxy, getGatewayBaseUrl } from './tauri-api.js'
@@ -45,11 +46,26 @@ export async function login(body) {
  * Login with AI 工作台 (workbench.kll666.cn) credentials — 登录统一方案1.
  * The gateway proxies POST {workbench}/api/auth/login server-side and mints
  * the normal shell WebUI JWT; one credential set for workbench + shell.
+ * 1.4.18: on success the response also carries `workbench_token` (one-time
+ * passthrough, gateway never persists it) so the shell can seed the
+ * workbench iframe (account sync / SSO).
  * @param {{ username: string, password: string }} body
- * @returns {Promise<{ token: string, expires_in_days: number, username: string }>}
+ * @returns {Promise<{ token: string, expires_in_days: number, username: string, workbench_token: string|null }>}
  */
 export async function loginWithWorkbench(body) {
   return gatewayProxy('POST', '/webui/login-workbench', body)
+}
+
+/**
+ * Login with an AI 工作台 token (iframe SSO shim capture) — 1.4.18 account
+ * sync. The gateway verifies the token server-side (GET {workbench}
+ * /api/auth/me) and mints the normal shell WebUI JWT; the shell account
+ * follows the workbench login. Called by lib/workbench-account-sync.js.
+ * @param {{ workbench_token: string }} body
+ * @returns {Promise<{ token: string, expires_in_days: number, username: string }>}
+ */
+export async function loginWithWorkbenchToken(body) {
+  return gatewayProxy('POST', '/webui/login-workbench-token', body)
 }
 
 /**

@@ -235,7 +235,7 @@ describe('1.4.13 预填链路硬安全（专员条/handoff 卡同规约）', () 
 })
 
 describe('1.4.13 版本', () => {
-  it('VERSION === 1.4.17（1.4.17 sidecar 重编刀 bump）', () => {
-    expect(VERSION).toBe('1.4.17')
+  it('VERSION === 1.4.18（账号同步刀 bump）', () => {
+    expect(VERSION).toBe('1.4.18')
   })
 })

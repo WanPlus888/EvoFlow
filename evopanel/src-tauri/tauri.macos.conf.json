@@ -4,6 +4,7 @@
     "windows": [
       {
         "label": "main",
+        "create": false,
         "title": "电商运营终端",
         "width": 1440,
         "height": 810,

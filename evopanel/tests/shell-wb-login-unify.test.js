@@ -101,8 +101,8 @@ describe('1.4.15 文案与常量', () => {
     expect(WORKBENCH_URLS).toContain("WORKBENCH_HOME_URL = 'https://workbench.kll666.cn/'")
   })
 
-  it('VERSION = 1.4.17（1.4.17 sidecar 重编刀 bump；登录统一业务测例不变）', () => {
-    expect(VERSION).toBe('1.4.17')
+  it('VERSION = 1.4.18（账号同步刀 bump；登录统一业务测例不变）', () => {
+    expect(VERSION).toBe('1.4.18')
   })
 })
 

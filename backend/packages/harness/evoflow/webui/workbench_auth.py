@@ -5,9 +5,15 @@ The shell's switch-user login authenticates against the workbench
 workbench stays the **sole** credential source — no workbench password is
 ever persisted locally. The gateway proxies the call server-side (no browser
 CORS; base URL stays in server config), maps the workbench username to a
-shell principal and mints the normal WebUI JWT. The workbench ``token``
-itself is never returned to the shell client: it is a different key
-namespace and must not be mixed with ``evoflow_webui_token``.
+shell principal and mints the normal WebUI JWT.
+
+1.4.18 (account sync): ``workbench_me`` verifies an already-issued workbench
+``token`` (the iframe SSO shim captures it from the workbench page) via
+``GET /api/auth/me``, so the shell can follow the workbench login without
+ever seeing a password. The ``/login-workbench`` route may hand the workbench
+``token`` back to the shell *client* on purpose (one-time passthrough, never
+persisted server-side) so the shell can seed the workbench iframe login.
+Tokens are never logged.
 """
 
 from __future__ import annotations
@@ -81,3 +87,52 @@ async def workbench_login(username: str, password: str) -> dict[str, Any]:
     if not isinstance(body, dict) or not str(body.get("token") or "").strip():
         raise WorkbenchAuthError(502, "工作台登录响应异常，请稍后重试")
     return body
+
+
+async def workbench_me(token: str) -> dict[str, Any]:
+    """Verify a workbench token via ``GET {base}/api/auth/me``; return identity.
+
+    1.4.18 account sync: the shell iframe shim captures the workbench login
+    token (``wb_token``); the gateway verifies it server-side before minting
+    a shell JWT. Error contract mirrors :func:`workbench_login`.
+
+    Args:
+        token: The workbench token (``Authorization: Bearer`` upstream). Never
+            logged by this module or its callers.
+
+    Returns:
+        ``{"username": str, "role": str | None}`` — the workbench identity.
+
+    Raises:
+        WorkbenchAuthError: ``401`` when the workbench rejects the token
+            (401/403 upstream → "工作台登录已失效"), ``503`` for timeout /
+            connect failure, ``502`` for unexpected upstream status or a
+            body without a non-empty ``username``.
+    """
+    import httpx
+
+    url = f"{get_workbench_auth_base()}/api/auth/me"
+    try:
+        async with httpx.AsyncClient(timeout=WORKBENCH_LOGIN_TIMEOUT_S) as client:
+            resp = await client.get(url, headers={"Authorization": f"Bearer {token}"})
+    except httpx.TimeoutException as exc:
+        raise WorkbenchAuthError(503, "工作台登录服务暂不可用（超时），请稍后重试") from exc
+    except httpx.HTTPError as exc:
+        raise WorkbenchAuthError(503, "工作台登录服务暂不可用，请稍后重试") from exc
+
+    if resp.status_code in (401, 403):
+        raise WorkbenchAuthError(401, "工作台登录已失效，请在工作台重新登录")
+    if resp.status_code != 200:
+        raise WorkbenchAuthError(502, "工作台登录服务暂不可用，请稍后重试")
+
+    try:
+        body = resp.json()
+    except Exception as exc:
+        raise WorkbenchAuthError(502, "工作台登录响应异常，请稍后重试") from exc
+    username = str(body.get("username") or "").strip() if isinstance(body, dict) else ""
+    if not username:
+        raise WorkbenchAuthError(502, "工作台登录响应异常，请稍后重试")
+    role = None
+    if isinstance(body, dict):
+        role = str(body.get("role") or "").strip().lower() or None
+    return {"username": username, "role": role}

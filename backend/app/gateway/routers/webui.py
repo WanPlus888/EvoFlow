@@ -6,6 +6,7 @@ Mounted at ``/api/webui``. Provides:
 * ``POST /disable``            — Disable WebUI
 * ``POST /login``              — Username + password login → JWT
 * ``POST /login-workbench``    — AI 工作台 credential login → JWT (login unification 方案1)
+* ``POST /login-workbench-token`` — AI 工作台 token (iframe SSO) login → JWT (1.4.18 account sync)
 * ``POST /qr-login``           — QR token login → JWT
 * ``POST /change-password``    — Change admin password (local-only)
 * ``POST /change-username``    — Change admin username (local-only)
@@ -17,6 +18,9 @@ Management endpoints (enable/disable/change-*/reset/generate-qr) require local
 access (127.0.0.1). Login and QR-login are open to remote clients.
 ``login-workbench`` proxies credentials to the AI 工作台 (server-side; the
 workbench base URL and the outbound call never reach the browser).
+``login-workbench-token`` (1.4.18) verifies a workbench ``token`` captured by
+the shell's iframe SSO shim — the daily account-sync path; the token is
+verified via ``GET /api/auth/me`` and never logged or persisted.
 """
 
 from __future__ import annotations
@@ -83,6 +87,23 @@ class WorkbenchLoginRequest(BaseModel):
 
     username: str = Field(..., description="AI 工作台 username")
     password: str = Field(..., description="AI 工作台 password")
+
+
+class WorkbenchLoginResponse(LoginResponse):
+    """Response for ``POST /api/webui/login-workbench`` (1.4.18 account sync).
+
+    ``workbench_token``: the workbench login token, echoed once so the shell
+    can seed the workbench iframe (SSO) after a shell-side switch-user login.
+    The gateway neither persists nor logs it.
+    """
+
+    workbench_token: str | None = Field(default=None, description="AI 工作台 token (one-time passthrough; not persisted)")
+
+
+class WorkbenchTokenLoginRequest(BaseModel):
+    """Body for ``POST /api/webui/login-workbench-token`` (1.4.18 account sync)."""
+
+    workbench_token: str = Field(..., description="AI 工作台 token captured by the iframe SSO shim")
 
 
 class ChangePasswordRequest(BaseModel):
@@ -379,12 +400,45 @@ async def login(body: LoginRequest) -> LoginResponse:
     return LoginResponse(token=token, username=str(user["username"]))
 
 
+def _mint_workbench_jwt(wb_username: str, wb_role: str | None) -> LoginResponse:
+    """Map a verified workbench identity to a shell principal and mint the JWT.
+
+    Shared by ``/login-workbench`` (credential path, 1.4.15) and
+    ``/login-workbench-token`` (iframe SSO path, 1.4.18). Deactivated
+    principals surface as ``403`` (ValueError from
+    ``ensure_workbench_principal``); principal-mapping infrastructure
+    failures degrade to a JWT without principal_id (logged, never 500).
+    """
+    principal_id: str | None = None
+    try:
+        from evoflow.authz.principals import ensure_workbench_principal
+
+        principal = ensure_workbench_principal(username=wb_username, role=wb_role)
+        principal_id = str(principal["principal_id"])
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(exc) or "该账号已被停用",
+        ) from exc
+    except Exception:
+        logger.warning("ensure_workbench_principal for JWT failed user=%s", wb_username, exc_info=True)
+
+    token = generate_jwt(
+        None,
+        wb_username,
+        get_webui_secret(),
+        principal_id=principal_id,
+        auth_method="workbench",
+    )
+    return LoginResponse(token=token, username=wb_username)
+
+
 @router.post(
     "/login-workbench",
-    response_model=LoginResponse,
+    response_model=WorkbenchLoginResponse,
     summary="Login with AI 工作台 credentials (login unification 方案1)",
 )
-async def login_workbench(body: WorkbenchLoginRequest) -> LoginResponse:
+async def login_workbench(body: WorkbenchLoginRequest) -> WorkbenchLoginResponse:
     """Authenticate against the AI 工作台 and mint a shell WebUI JWT.
 
     The workbench (default ``https://workbench.kll666.cn``) is the credential
@@ -392,8 +446,9 @@ async def login_workbench(body: WorkbenchLoginRequest) -> LoginResponse:
     ``POST {base}/api/auth/login`` server-side (no browser CORS), maps the
     workbench username to a shell principal (``ensure_workbench_principal`` —
     no local password row is ever created) and returns the standard WebUI
-    JWT. The workbench ``token`` is neither returned nor stored: different
-    key namespace, never mix with ``evoflow_webui_token``.
+    JWT. Since 1.4.18 the workbench ``token`` is echoed once as
+    ``workbench_token`` so the shell can seed the workbench iframe (SSO) —
+    the gateway itself never persists or logs it.
 
     Error contract:
     * ``400`` — malformed parameters (empty / whitespace-only credentials);
@@ -417,28 +472,48 @@ async def login_workbench(body: WorkbenchLoginRequest) -> LoginResponse:
     wb_username = str(wb.get("username") or "").strip() or str(body.username).strip()
     wb_role = str(wb.get("role") or "").strip().lower() or None
 
-    principal_id: str | None = None
-    try:
-        from evoflow.authz.principals import ensure_workbench_principal
+    minted = _mint_workbench_jwt(wb_username, wb_role)
+    wb_token = str(wb.get("token") or "").strip() or None
+    return WorkbenchLoginResponse(token=minted.token, username=minted.username, workbench_token=wb_token)
 
-        principal = ensure_workbench_principal(username=wb_username, role=wb_role)
-        principal_id = str(principal["principal_id"])
-    except ValueError as exc:
+
+@router.post(
+    "/login-workbench-token",
+    response_model=LoginResponse,
+    summary="Login with an AI 工作台 token (iframe SSO account sync, 1.4.18)",
+)
+async def login_workbench_token(body: WorkbenchTokenLoginRequest) -> LoginResponse:
+    """Verify a workbench token and mint a shell WebUI JWT.
+
+    1.4.18 account sync: the shell's iframe SSO shim watches the workbench
+    page's ``wb_token`` and posts identity changes to the shell; the shell
+    then calls this endpoint. The gateway verifies the token server-side
+    (``GET {base}/api/auth/me`` with ``Authorization: Bearer`` — the token
+    never reaches the browser of the workbench, only this gateway call) and
+    reuses the same principal mapping + JWT minting as ``/login-workbench``.
+    Open login class (same as ``/login``); the token is never logged.
+
+    Error contract:
+    * ``400`` — malformed parameter (empty / whitespace-only token);
+    * ``401`` — workbench rejected the token ("工作台登录已失效…");
+    * ``403`` — mapped principal is deactivated;
+    * ``502`` / ``503`` — workbench unexpected response / unreachable (timeout).
+    """
+    token = str(body.workbench_token or "").strip()
+    if not token:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=str(exc) or "该账号已被停用",
-        ) from exc
-    except Exception:
-        logger.warning("ensure_workbench_principal for JWT failed user=%s", wb_username, exc_info=True)
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Workbench token must not be empty.",
+        )
 
-    token = generate_jwt(
-        None,
-        wb_username,
-        get_webui_secret(),
-        principal_id=principal_id,
-        auth_method="workbench",
-    )
-    return LoginResponse(token=token, username=wb_username)
+    from evoflow.webui.workbench_auth import WorkbenchAuthError, workbench_me
+
+    try:
+        me = await workbench_me(token)
+    except WorkbenchAuthError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
+
+    return _mint_workbench_jwt(me["username"], me.get("role"))
 
 
 @router.post("/qr-login", response_model=LoginResponse, summary="Login with QR token")

@@ -52,6 +52,8 @@ export default defineConfig({
       'tests/ops-multi-bot-p0.test.js',
       'tests/ops-brain-sidebar-return.test.js',
       'tests/shell-wb-login-unify.test.js',
+      'tests/workbench-account-sync.test.js',
+      'tests/workbench-sso-shim.test.js',
       'tests/aside-title-shimmer.test.js',
       'tests/chat-summary-panel.test.js',
       'tests/compose-attach.test.js',

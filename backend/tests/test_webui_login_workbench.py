@@ -229,8 +229,9 @@ def test_endpoint_200_mints_shell_jwt(client, patched_mints, monkeypatch) -> Non
     assert data["username"] == "alice"
     # Shell JWT minted via the gateway's own signer, auth_method=workbench.
     assert data["token"] == "jwt:workbench:pid-alice:alice"
-    # The workbench token must never be echoed to the shell client.
-    assert "wb-token-should-not-escape" not in resp.text
+    # 1.4.18 account sync: the workbench token is echoed once (workbench_token)
+    # so the shell can seed the workbench iframe; /login must NOT echo it.
+    assert data["workbench_token"] == "wb-token-should-not-escape"
     assert patched_mints == [{"username": "alice", "role": "admin"}]
 
 

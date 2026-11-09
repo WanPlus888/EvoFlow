@@ -554,6 +554,13 @@ async function boot() {
   } catch (e) {
     console.warn('[boot] account-session warm failed', e)
   }
+  // 1.4.18 账号同步：工作台 iframe 垫片 → login-workbench-token → 账号跟随。
+  // 浏览器下没有垫片消息源，监听自然空转（幂等）。
+  try {
+    ;(await import('./lib/workbench-account-sync.js')).initWorkbenchAccountSync()
+  } catch (e) {
+    console.warn('[boot] workbench account sync init failed', e)
+  }
   const initialPath = (window.location.hash.slice(1) || '/chat').split('?')[0]
   const authOnlyBoot = !isTauri && isAuthRoute(initialPath)
 

@@ -150,6 +150,23 @@ pub fn run() {
             }
         })
         .setup(|app| {
+            // 1.4.18 账号同步：main 窗改为在此手工创建（tauri.conf.json windows[0]
+            // 已设 create=false），以便给**所有 frame**注入工作台 SSO 垫片——
+            // 工作台 iframe 里的 wb_token 变化经 postMessage 回壳完成账号跟随。
+            // 配置仍以 tauri.conf.json 为唯一事实源（from_config），此处只追加
+            // initialization_script_for_all_frames；后续 get_webview_window("main")
+            // 的既有逻辑（devtools / 关窗隐藏 / 事件回调）不受影响。
+            {
+                let main_cfg = app
+                    .config()
+                    .app
+                    .windows
+                    .first()
+                    .ok_or("tauri.conf.json app.windows[0] (main) missing")?;
+                tauri::WebviewWindowBuilder::from_config(app.handle(), main_cfg)?
+                    .initialization_script_for_all_frames(include_str!("workbench_sso_shim.js"))
+                    .build()?;
+            }
             // 浏览器 embed 看门狗：可见窗口偏离槽位即记 ANOMALY 并吸回（自愈+取证）。
             commands::browser_embed::start_embed_watchdog(app.handle().clone());
             #[cfg(desktop)]

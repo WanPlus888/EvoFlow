@@ -76,11 +76,14 @@ fn build_ops_float_window(
     pos: (f64, f64),
 ) -> Result<WebviewWindow, String> {
     // 加载本机运营 shell 的聊天首页（chat + shell-aside，含生产工单入口）。
+    // 1.4.18：与 main 窗同源注入工作台 SSO 垫片（所有 frame），保证悬浮窗里
+    // 的工作台 iframe 同样能参与账号同步。
     WebviewWindow::builder(
         app,
         OPS_FLOAT_LABEL,
         WebviewUrl::App("index.html#/chat".into()),
     )
+    .initialization_script_for_all_frames(include_str!("../workbench_sso_shim.js"))
     .title("电商运营 · 运营台")
     .inner_size(OPS_FLOAT_WIDTH, OPS_FLOAT_HEIGHT)
     .position(pos.0, pos.1)
