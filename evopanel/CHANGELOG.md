@@ -4,6 +4,31 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.4.17] - 2026-11-09
+
+**壳补刀：强制重编内置 gateway sidecar，修复「切换用户」登录统一 404**（1.4.16 桌面壳配的仍是 1.4.14 旧 gateway；登录统一业务源码 1.4.15 `78a2f51` 已在 tip，只是装包没带上）。
+
+### 本版要点
+
+- **根因（本机钉死）**：`evopanel/src-tauri/binaries/evoflow-gateway`（gitignored）在 1.4.16 打包时残留 1.4.14 旧产物——其 `sidecar-manifest.json` `panel_version=1.4.14`（built_at=2026-11-09T01:05:20Z，exe_sha256 与现装 App 内完全一致），二进制内无 `login_workbench`；DMG 直接复用 → 壳 1.4.16 + gateway 1.4.14 → `POST /api/webui/login-workbench` 404（`~/.evoflow/logs` 有 Not Found 记录）
+- **强制重编**：本版出包走 `build-installer-mac.sh` 全链路（脚本本就会先 `rm -rf` 旧 `binaries/evoflow-gateway` 再 PyInstaller 重编），sidecar manifest `panel_version` 与 `evopanel/VERSION` 同为 **1.4.17**
+- **打包闸（防复发，本刀主交付）**：`evopanel/scripts/build-installer-mac.sh` 在 gateway 建完、Tauri bundle 前新增两道断言（对齐 Win 侧 `build-installer-win.ps1` 口径）：① `sidecar-manifest.json` 必须存在且 `panel_version` **严格等于** `evopanel/VERSION`，否则 exit 1 禁止出 DMG；② login 路由探针——PYZ 压缩使 `strings/rg` 无法证伪，改为随机空闲端口冷启 sidecar 并 `POST /api/webui/login-workbench`，**404 即失败**（401=路由在+错密、502/503=路由在+上游不可达，均通过）；跨编译架构不匹配或 `EVOFLOW_SKIP_LOGIN_SMOKE=1` 时跳过并注明；探针结束即杀进程清理
+- **sidecar 入包修复（构建中第二次发现的缺口）**：官方脚本旧流程出的 DMG **不含网关**——tauri.conf 因 tauri-build 2.6.2 大目录资源拷贝 ENOTDIR 早已不声明 binaries 资源，实际一直是 `tools/build-mac-dmg.sh`（CJK 产品名 workaround 包装，不重编不清理网关）后装网关出包，1.4.16 旧 sidecar 正是从这里进包；且实测 tauri 2.11.2 `--bundles dmg` 会重建 .app 抹掉手工注入。现 `build-installer-mac.sh` 完整接管：`--bundles app` → 后装网关进 `.app/Contents/Resources/binaries/`（保可执行位）→ ad-hoc 重签名 → **in-app manifest 再校验** → 手动调 tauri 释放的 `bundle_dmg.sh` 出 DMG（保留 hdiutil 重试语义）；`tools/build-mac-dmg.sh` 亦加同口径双闸（缺网关/版本不一致/路由 404 全部 exit 1，`EVOFLOW_ALLOW_NO_GATEWAY=1` 仅供 UI 验证包）
+- **preflight Check 5**：`scripts/preflight-build-check.py` 新增 `CHECK_SIDECAR_MANIFEST`——出包前若发现残留旧 bundle（`panel_version` ≠ `evopanel/VERSION`）立即报错，把「打旧包」拦在 60–90 分钟编译之前；CI 与本地同一脚本
+- **闸自测（回执附输出）**：四负例全数 exit 1——preflight 残留 1.4.14 manifest / 打包闸 manifest 版本不一致 / manifest 缺失 / **旧 1.4.14 二进制+谎报 1.4.17 manifest**（1.4.16 事故完整复现，探针拦下）；正例由本次真实构建日志中的 `sidecar pin ok` + `login route smoke ok` 两行证明
+- **登录业务零改**：`login_workbench` / `workbench_auth` / principals 即 1.4.15 已审实现（`backend/tests/test_webui_login_workbench.py` 22 例、`evopanel/tests/shell-wb-login-unify.test.js` 15 例照跑），本刀不动业务逻辑
+
+### 参与本次发版
+
+- 全栈开发工程师：sidecar 重编对齐、Mac 打包闸与 login 路由探针、preflight Check 5 及四负例自测
+- 发版工程师：1.4.17 版本全套 bump 与三份说明、DMG 出包
+
+### 明确未做
+
+- 不注入 `wb_token`、不做 iframe SSO（iframe 内工作台可能仍需再登一次，另开刀）
+- 不改登录统一业务逻辑；不动 T46 回程 / 侧栏；不动工作台仓；不碰千川 / 投放生产写
+- 未审不装 `/Applications`；不出 Win 包；updater 仍关
+
 ## [1.4.16] - 2026-11-09
 
 **运营大脑回程补刀：离开驾驶舱首页 + 恢复上一会话**（修 1.4.14 回程只切 bot 旗标、不退 `preferHomeDashboard` 的缺口；叠在已审 1.4.15 登录统一 tip 之上）。

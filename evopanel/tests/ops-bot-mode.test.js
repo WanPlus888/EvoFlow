@@ -137,7 +137,7 @@ describe('1.4.10 回归：1.4.9 回工作台 / 1.4.8 顶空条不回退', () => 
     )
   })
 
-  it('VERSION == 1.4.16（回程离开首页补刀）', () => {
-    expect(VERSION).toBe('1.4.16')
+  it('VERSION == 1.4.17（sidecar 重编补刀）', () => {
+    expect(VERSION).toBe('1.4.17')
   })
 })

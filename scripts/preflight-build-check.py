@@ -12,6 +12,7 @@ Environment variables (all default to "1" = enabled):
     CHECK_HIDDEN_IMPORTS   .spec hiddenimports reachability
     CHECK_GITIGNORE        gitignore cross-check
     CHECK_OFFICIAL_PLUGINS packaging/official-plugins-bundle product plugins
+    CHECK_SIDECAR_MANIFEST stale binaries/evoflow-gateway manifest vs evopanel/VERSION
 
 CI: run packaging/fetch-official-plugins-bundle.sh before this script
 (unpacks committed packaging/official-plugins-bundle.tar.gz by default).
@@ -31,6 +32,10 @@ GATEWAY_ENTRY = REPO_ROOT / "backend" / "packaging" / "windows" / "gateway_entry
 GATEWAY_SPEC = REPO_ROOT / "backend" / "packaging" / "windows" / "gateway.spec"
 HARNESS_ROOT = REPO_ROOT / "backend" / "packages" / "harness"
 PACKAGES_ROOT = REPO_ROOT / "backend" / "packages"
+EVOPANEL_VERSION_FILE = REPO_ROOT / "evopanel" / "VERSION"
+SIDECAR_MANIFEST = (
+    REPO_ROOT / "evopanel" / "src-tauri" / "binaries" / "evoflow-gateway" / "sidecar-manifest.json"
+)
 
 RED = "\033[31m"
 GREEN = "\033[32m"
@@ -451,12 +456,56 @@ def check_official_plugins_bundle() -> None:
 # ---------------------------------------------------------------------------
 
 
+def check_sidecar_manifest_pin() -> None:
+    """Stale binaries/evoflow-gateway must fail fast (1.4.17).
+
+    1.4.16 DMG'd a leftover 1.4.14 sidecar (login-workbench 404) because a
+    stale bundle sat in evopanel/src-tauri/binaries/ and the pack step reused
+    it. build-installer-mac.sh asserts this again after the PyInstaller step;
+    this pre-check catches it before the expensive build on dev machines.
+    Absent bundle = normal CI state (nothing built yet) → skip.
+    """
+    import json
+
+    print(f"\n[{GREEN}5{RESET}] sidecar manifest pin (binaries/ vs evopanel/VERSION)")
+
+    if not SIDECAR_MANIFEST.is_file():
+        _ok("no prebuilt sidecar bundle present (fresh build will create it)")
+        return
+
+    try:
+        manifest = json.loads(SIDECAR_MANIFEST.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        _e(f"cannot parse {SIDECAR_MANIFEST.relative_to(REPO_ROOT)}: {exc}")
+        return
+
+    manifest_ver = str(manifest.get("panel_version", "") or "")
+    if not manifest_ver:
+        _e(f"sidecar-manifest.json has no panel_version ({SIDECAR_MANIFEST.relative_to(REPO_ROOT)})")
+        return
+
+    if not EVOPANEL_VERSION_FILE.is_file():
+        _e("evopanel/VERSION missing — cannot pin sidecar manifest")
+        return
+    expected_ver = EVOPANEL_VERSION_FILE.read_text(encoding="utf-8").strip()
+
+    if manifest_ver != expected_ver:
+        _e(
+            f"stale sidecar bundle: panel_version={manifest_ver} != evopanel/VERSION={expected_ver} — "
+            "rm -rf evopanel/src-tauri/binaries/evoflow-gateway before building "
+            "(build-installer-mac.sh rebuilds it; never DMG the old one)"
+        )
+    else:
+        _ok(f"sidecar panel_version={manifest_ver} == evopanel/VERSION")
+
+
 def main() -> None:
     check_map = {
         "CHECK_GATEWAY_ENTRY": (check_gateway_entry, True),
         "CHECK_HIDDEN_IMPORTS": (check_hidden_imports, True),
         "CHECK_GITIGNORE": (check_gitignore_cross, True),
         "CHECK_OFFICIAL_PLUGINS": (check_official_plugins_bundle, True),
+        "CHECK_SIDECAR_MANIFEST": (check_sidecar_manifest_pin, True),
     }
 
     total = 0
