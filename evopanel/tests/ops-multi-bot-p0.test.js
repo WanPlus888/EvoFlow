@@ -7,7 +7,7 @@
  * 源码断言风格与 ops-bot-mode.test.js 一致；纯函数模块做行为单测。
  */
 import { describe, expect, it } from 'vitest'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const ROOT = process.cwd()
@@ -186,6 +186,23 @@ describe('1.4.13 @专员 不走 proactiveDispatchTask 巡检派发', () => {
       CONTROLLER.indexOf('handleOpsSpecialistHandoff = useCallback') + 4500,
     )
     expect(ctx).not.toMatch(/handleSend|invokeModel|charge\b|createTicket/)
+  })
+})
+
+describe('1.4.13 转交链路动态 import 路径纠偏（文件在 src/react/chat-app/，两层 ../ 即到 src/）', () => {
+  it('controller 不再含三层 ../../../ 的 ops 模块路径', () => {
+    expect(CONTROLLER).not.toContain('../../../lib/ops-specialists')
+    expect(CONTROLLER).not.toContain('../../../lib/ops-handoff-card')
+    expect(CONTROLLER).not.toContain('../../../components/ops-handoff-card')
+  })
+
+  it('controller 含对应两层 ../../ 三处，且目标模块真实存在（路径可解析）', () => {
+    expect(CONTROLLER).toContain("'../../lib/ops-specialists.js'")
+    expect(CONTROLLER).toContain("'../../lib/ops-handoff-card.js'")
+    expect(CONTROLLER).toContain("'../../components/ops-handoff-card.js'")
+    for (const p of ['src/lib/ops-specialists.js', 'src/lib/ops-handoff-card.js', 'src/components/ops-handoff-card.js']) {
+      expect(existsSync(join(ROOT, p))).toBe(true)
+    }
   })
 })
 

@@ -6,6 +6,7 @@
 |------|------|
 | [仓库地图](repo-map.md) | 改哪里、测哪里 |
 | [分支与检查](branching-and-checks.md) | 拉分支、本地检查、CI |
+| [Mac 干净 wt 上 uv sync](mac-clean-wt-uv-sync.md) | 干净 worktree 装后端环境：Python 3.12、tree-sitter-languages 轮子坑 |
 | [添加 Skill](add-skill.md) | 社区最常见的扩展方式 |
 | [添加 IM 渠道](add-channel.md) | `app/channels` 扩展（通常先 RFC） |
 | [RFC](rfc.md) | 较大改动如何提案 |

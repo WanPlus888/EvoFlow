@@ -2867,9 +2867,9 @@ export function useChatAppController() {
   >(null)
   const handleOpsSpecialistHandoff = useCallback(
     async (code: string, goal: string) => {
-      const { getOpsSpecialist } = await import('../../../lib/ops-specialists.js')
+      const { getOpsSpecialist } = await import('../../lib/ops-specialists.js')
       const { buildOpsHandoffCard, opsHandoffCardText, opsHandoffHumanText } = await import(
-        '../../../lib/ops-handoff-card.js'
+        '../../lib/ops-handoff-card.js'
       )
       const sp = getOpsSpecialist(code)
       const name = sp?.name || code
@@ -2892,7 +2892,7 @@ export function useChatAppController() {
         { role: 'assistant', text: opsHandoffHumanText(card, 'pending'), timestamp: now + 1 },
       ])
 
-      const { showOpsHandoffCard } = await import('../../../components/ops-handoff-card.js')
+      const { showOpsHandoffCard } = await import('../../components/ops-handoff-card.js')
       showOpsHandoffCard({
         to: code,
         toName: name,
