@@ -142,7 +142,7 @@ function createSectionHtml() {
       ${iconPlus()}
       创建用户
     </div>
-    <p class="form-hint users-section-hint">新用户可设登录名与密码，用于侧栏「切换用户」。未填登录名则无法用密码登录。</p>
+    <p class="form-hint users-section-hint">新用户可设登录名与密码，用于远程 WebUI 登录与本机运维旁路；日常侧栏「切换用户」请用 AI 工作台账号。未填登录名则无法用密码登录。</p>
     <div class="users-form-grid">
       <label class="form-field">
         <span class="form-label">显示名 <span class="users-req">*</span></span>
@@ -150,7 +150,7 @@ function createSectionHtml() {
       </label>
       <label class="form-field">
         <span class="form-label">登录用户名 <span class="users-req">*</span></span>
-        <input class="form-input" id="users-username" placeholder="切换用户 / 远程登录用" autocomplete="off" />
+        <input class="form-input" id="users-username" placeholder="远程登录 / 本机运维用" autocomplete="off" />
       </label>
       <label class="form-field">
         <span class="form-label">邮箱</span>
@@ -427,7 +427,7 @@ async function onCreate() {
     return
   }
   if (!username) {
-    toast('请填写登录用户名（切换用户需要）', 'error')
+    toast('请填写登录用户名（远程登录 / 本机运维需要）', 'error')
     _root?.querySelector('#users-username')?.focus()
     return
   }

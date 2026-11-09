@@ -1,6 +1,6 @@
 /**
  * WebUI remote-access API client.
- * Backend: /api/webui/* (status, enable, disable, login, qr-login, credentials, qr-token).
+ * Backend: /api/webui/* (status, enable, disable, login, login-workbench, qr-login, credentials, qr-token).
  */
 
 import { gatewayProxy, getGatewayBaseUrl } from './tauri-api.js'
@@ -32,11 +32,24 @@ export async function disableWebui() {
 
 /**
  * Login with username + password.
+ * Local shell credentials (evoflow_webui_users) — Local Admin / remote-WebUI
+ * ops path. NOT the daily switch-user path (see loginWithWorkbench).
  * @param {{ username: string, password: string }} body
  * @returns {Promise<{ token: string, expires_in_days: number, username: string }>}
  */
 export async function login(body) {
   return gatewayProxy('POST', '/webui/login', body)
+}
+
+/**
+ * Login with AI 工作台 (workbench.kll666.cn) credentials — 登录统一方案1.
+ * The gateway proxies POST {workbench}/api/auth/login server-side and mints
+ * the normal shell WebUI JWT; one credential set for workbench + shell.
+ * @param {{ username: string, password: string }} body
+ * @returns {Promise<{ token: string, expires_in_days: number, username: string }>}
+ */
+export async function loginWithWorkbench(body) {
+  return gatewayProxy('POST', '/webui/login-workbench', body)
 }
 
 /**

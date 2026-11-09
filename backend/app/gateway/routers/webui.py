@@ -5,6 +5,7 @@ Mounted at ``/api/webui``. Provides:
 * ``POST /enable``             — Enable WebUI (creates admin + returns initial password once)
 * ``POST /disable``            — Disable WebUI
 * ``POST /login``              — Username + password login → JWT
+* ``POST /login-workbench``    — AI 工作台 credential login → JWT (login unification 方案1)
 * ``POST /qr-login``           — QR token login → JWT
 * ``POST /change-password``    — Change admin password (local-only)
 * ``POST /change-username``    — Change admin username (local-only)
@@ -14,6 +15,8 @@ Mounted at ``/api/webui``. Provides:
 
 Management endpoints (enable/disable/change-*/reset/generate-qr) require local
 access (127.0.0.1). Login and QR-login are open to remote clients.
+``login-workbench`` proxies credentials to the AI 工作台 (server-side; the
+workbench base URL and the outbound call never reach the browser).
 """
 
 from __future__ import annotations
@@ -73,6 +76,13 @@ class QrLoginRequest(BaseModel):
     """Body for ``POST /api/webui/qr-login``."""
 
     qr_token: str = Field(..., description="The QR login token from generate-qr-token")
+
+
+class WorkbenchLoginRequest(BaseModel):
+    """Body for ``POST /api/webui/login-workbench`` (login unification 方案1)."""
+
+    username: str = Field(..., description="AI 工作台 username")
+    password: str = Field(..., description="AI 工作台 password")
 
 
 class ChangePasswordRequest(BaseModel):
@@ -367,6 +377,68 @@ async def login(body: LoginRequest) -> LoginResponse:
         logger.debug("password login policy check failed", exc_info=True)
     token = _jwt_for_webui_user(user, auth_method="password")
     return LoginResponse(token=token, username=str(user["username"]))
+
+
+@router.post(
+    "/login-workbench",
+    response_model=LoginResponse,
+    summary="Login with AI 工作台 credentials (login unification 方案1)",
+)
+async def login_workbench(body: WorkbenchLoginRequest) -> LoginResponse:
+    """Authenticate against the AI 工作台 and mint a shell WebUI JWT.
+
+    The workbench (default ``https://workbench.kll666.cn``) is the credential
+    source for the shell's switch-user path. The gateway proxies
+    ``POST {base}/api/auth/login`` server-side (no browser CORS), maps the
+    workbench username to a shell principal (``ensure_workbench_principal`` —
+    no local password row is ever created) and returns the standard WebUI
+    JWT. The workbench ``token`` is neither returned nor stored: different
+    key namespace, never mix with ``evoflow_webui_token``.
+
+    Error contract:
+    * ``400`` — malformed parameters (empty / whitespace-only credentials);
+    * ``401`` — workbench rejected the credentials (Chinese detail 对齐工作台);
+    * ``502`` / ``503`` — workbench unexpected response / unreachable (timeout).
+    """
+    malformed = _login_params_are_malformed(body.username, body.password)
+    if malformed is not None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=malformed,
+        )
+
+    from evoflow.webui.workbench_auth import WorkbenchAuthError, workbench_login
+
+    try:
+        wb = await workbench_login(body.username, body.password)
+    except WorkbenchAuthError as exc:
+        raise HTTPException(status_code=exc.status_code, detail=exc.detail) from exc
+
+    wb_username = str(wb.get("username") or "").strip() or str(body.username).strip()
+    wb_role = str(wb.get("role") or "").strip().lower() or None
+
+    principal_id: str | None = None
+    try:
+        from evoflow.authz.principals import ensure_workbench_principal
+
+        principal = ensure_workbench_principal(username=wb_username, role=wb_role)
+        principal_id = str(principal["principal_id"])
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=str(exc) or "该账号已被停用",
+        ) from exc
+    except Exception:
+        logger.warning("ensure_workbench_principal for JWT failed user=%s", wb_username, exc_info=True)
+
+    token = generate_jwt(
+        None,
+        wb_username,
+        get_webui_secret(),
+        principal_id=principal_id,
+        auth_method="workbench",
+    )
+    return LoginResponse(token=token, username=wb_username)
 
 
 @router.post("/qr-login", response_model=LoginResponse, summary="Login with QR token")

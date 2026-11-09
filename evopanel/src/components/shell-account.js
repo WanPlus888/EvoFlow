@@ -133,7 +133,7 @@ function readyMenuHtml(me) {
     }
     ${
       !jwt
-        ? `<div class="shell-account-note">本机默认免登为本地管理员。切换用户后，会话与数据按账号隔离。</div>`
+        ? `<div class="shell-account-note">日常「切换用户」请用 AI 工作台账号。本机默认免登为本地管理员；切换后会话与数据按账号隔离。</div>`
         : ''
     }`
 }

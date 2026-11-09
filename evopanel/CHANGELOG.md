@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.4.15] - 2026-11-09
+
+**壳登录统一方案1：「切换用户」主路径改调 AI 工作台账密，两处一套账密**（Local Admin 免登与运维旁路全保留）。
+
+### 本版要点
+
+- **工作台账号直登壳**：`#/login?switch=1`「切换用户 / 工作区身份」主路径改走 gateway 新路由 `POST /api/webui/login-workbench`——服务端代理 `https://workbench.kll666.cn/api/auth/login`（无浏览器 CORS；`EVOFLOW_WORKBENCH_AUTH_BASE` 可覆盖，超时 10s），成功后以工作台 username 为壳 principal 并签发壳 WebUI JWT（`auth_method=workbench`）；工作台网页与本页同一套账密
+- **错误契约对齐工作台**：错密 401 透传中文「用户名或密码不对」；工作台 5xx / 超时 → 502/503「工作台登录服务暂不可用」，不 mint JWT
+- **principal 映射**：`ensure_workbench_principal`（principals.py）按 `workbench` identity JIT 供号——同名壳本地用户自动并轨同一 principal；只建无密码映射行，工作台密码永不落壳库；工作台 role=admin 映射壳 org admin
+- **Local Admin / 运维旁路全保留**：冷启本机无 JWT 仍免登 Local Admin；「退出账号」仍回 Local Admin；switch 页新增次要入口「本机运维登录」（`?local=1`）走旧 `/webui/login` 壳本地户；远程 WebUI 浏览器登录页不变
+- **文案拨正**：登录页 / 设置→用户权限 / 账户菜单不再宣称壳本地户是「切换用户」的账号来源，标明其用途 = 远程 WebUI / 本机运维
+- **测例**：新增 `backend/tests/test_webui_login_workbench.py`（22 例：代理契约 401/502/503/400、端点 200 mint、principal 供号/并轨/停用拒登/role 映射、旧本地密码校验零参与）与 `evopanel/tests/shell-wb-login-unify.test.js`（15 例：主路径/旁路/隔离回归/文案/后端对齐/禁区）；拨正 5 处钉 1.4.14 的陈旧 VERSION 断言至 1.4.15
+
+### 参与本次发版
+
+- 全栈开发工程师：登录统一方案1 Gateway 代理 + principal 映射 + 前端主路径与运维旁路 + 测例
+
+### 明确未做
+
+- 不动工作台仓（zhuhongftam，Gateway 代理下零改）；不打通托盘 SSO 与壳 JWT；不迁移/删除 `evoflow_webui_users`；不修 iframe ITP cookie；不碰千川 / 投放生产写；未审不装 /Applications；不打 Win；updater 仍关；工作台 token 不下发不落库
+
 ## [1.4.14] - 2026-11-09
 
 **运营大脑侧栏回程入口：侧栏常驻「运营大脑」，全壳任意页一键回 Bot 聊天**（补入口，不推翻 bot-mode 生命周期）。

@@ -6,6 +6,10 @@
  * OIDC 回调：`#/auth/callback?token=...&redirect=/chat`
  * 本机「切换用户」走同一页：`#/login?switch=1`
  *
+ * 登录统一方案1（1.4.15）：switch 主路径改调 AI 工作台账密
+ * （gateway 代理 POST /webui/login-workbench），工作台网页与本页同一套账密；
+ * 本机运维旁路保留旧壳本地户（evoflow_webui_users）：`#/login?switch=1&local=1`。
+ *
  * 路由注册在 main.js: registerRoute('/login', ...) + registerRoute('/qr-login', ...)
  */
 import { version as APP_VERSION } from '../../package.json'
@@ -14,6 +18,7 @@ import {
   buildOidcLoginUrl,
   getWebuiStatus,
   login,
+  loginWithWorkbench,
   qrLogin,
   saveAuthToken,
 } from '../lib/webui-remote.js'
@@ -63,6 +68,7 @@ function brandPanelHtml(switchMode) {
 /**
  * @param {{
  *   switchMode: boolean,
+ *   localOpsMode?: boolean,
  *   oidcEnabled?: boolean,
  *   oidcButtonLabel?: string,
  *   passwordLoginEnabled?: boolean,
@@ -75,9 +81,11 @@ function brandPanelHtml(switchMode) {
 function loginPanelBody(opts) {
   const {
     switchMode,
+    localOpsMode = false,
     oidcEnabled = false,
     oidcButtonLabel = '使用企业 SSO 登录',
     passwordLoginEnabled = true,
+    redirect = '/chat',
     error = '',
     statusTitle = '',
     statusBody = '',
@@ -86,10 +94,12 @@ function loginPanelBody(opts) {
   const eyebrow = switchMode ? '切换用户' : '账户登录'
   const title = switchMode ? '选择工作身份' : '登录组织账户'
   const desc = switchMode
-    ? '输入已开通的用户名与密码，切换后立即按新身份隔离数据。'
+    ? localOpsMode
+      ? '使用壳本机运维账号登录（账号在「设置 → 用户权限」管理）。'
+      : '输入 AI 工作台的账号与密码，切换后立即按新身份隔离数据。'
     : '请使用管理员分配的企业账号，或通过组织身份提供商登录。'
   const usernameValue = switchMode ? '' : ''
-  const usernamePlaceholder = '组织用户名'
+  const usernamePlaceholder = switchMode ? (localOpsMode ? '运维用户名' : 'AI 工作台用户名') : '组织用户名'
   const showPassword = passwordLoginEnabled !== false
   const showSso = Boolean(oidcEnabled) && !switchMode
 
@@ -125,11 +135,20 @@ function loginPanelBody(opts) {
       </form>`
     : ''
 
+  // 模式互切时保留 redirect 目标（默认 /chat 不携带，保持链接干净）
+  const redirectQ = redirect && redirect !== '/chat' ? `&redirect=${encodeURIComponent(redirect)}` : ''
   const footer = switchMode
-    ? `<footer class="webui-login-footer">
-        <span>账号由「设置 → 用户权限」创建。取消后仍保持当前身份。</span>
-      </footer>
-      <a href="#/chat" class="webui-login-link-btn webui-login-link-btn--ghost" id="login-cancel">取消，返回应用</a>`
+    ? localOpsMode
+      ? `<footer class="webui-login-footer">
+          <span>本机运维账号用于远程 WebUI / 本机运维；日常「切换用户」请用 AI 工作台账号。取消后仍保持当前身份。</span>
+        </footer>
+        <a href="#/login?switch=1${redirectQ}" class="webui-login-link-btn webui-login-link-btn--ghost" id="login-back-workbench">使用 AI 工作台账号登录</a>
+        <a href="#/chat" class="webui-login-link-btn webui-login-link-btn--ghost" id="login-cancel">取消，返回应用</a>`
+      : `<footer class="webui-login-footer">
+          <span>账号在 AI 工作台（workbench.kll666.cn）管理，与工作台网页同一套账密。取消后仍保持当前身份。</span>
+        </footer>
+        <a href="#/login?switch=1&local=1${redirectQ}" class="webui-login-link-btn webui-login-link-btn--ghost" id="login-local-ops">本机运维登录</a>
+        <a href="#/chat" class="webui-login-link-btn webui-login-link-btn--ghost" id="login-cancel">取消，返回应用</a>`
     : showPassword
       ? `<footer class="webui-login-footer">
           ${QR_HINT_ICON}
@@ -210,10 +229,10 @@ function showError(msg) {
 
 /**
  * @param {HTMLElement} root
- * @param {{ switchMode: boolean, redirect?: string }} opts
+ * @param {{ switchMode: boolean, localOpsMode?: boolean, redirect?: string }} opts
  */
 function wireLoginEvents(root, opts) {
-  const { switchMode, redirect = '/chat' } = opts
+  const { switchMode, localOpsMode = false, redirect = '/chat' } = opts
 
   root.querySelector('#login-sso')?.addEventListener('click', async () => {
     try {
@@ -248,7 +267,12 @@ function wireLoginEvents(root, opts) {
     showError('')
 
     try {
-      const resp = await login({ username, password })
+      // 登录统一方案1：switch 主路径走 AI 工作台账密（gateway 代理）；
+      // ?local=1 本机运维旁路与远程 WebUI 页仍走壳本地 evoflow_webui_users。
+      const useWorkbench = switchMode && !localOpsMode
+      const resp = useWorkbench
+        ? await loginWithWorkbench({ username, password })
+        : await login({ username, password })
       prepareAccountSwitch(resp.token)
       saveAuthToken(resp.token)
       const target = redirect.startsWith('/') ? redirect : `/${redirect}`
@@ -335,6 +359,7 @@ export function render(opts) {
 
   const params = parseLoginQuery()
   const switchMode = params.get('switch') === '1'
+  const localOpsMode = switchMode && params.get('local') === '1'
   const redirect = params.get('redirect') || '/chat'
   const error = params.get('error') || ''
 
@@ -358,22 +383,24 @@ export function render(opts) {
   } else {
     page.innerHTML = loginHtml({
       switchMode,
+      localOpsMode,
       redirect,
       error,
     })
-    wireLoginEvents(page, { switchMode, redirect })
+    wireLoginEvents(page, { switchMode, localOpsMode, redirect })
     void getWebuiStatus()
       .then((status) => {
         if (!page.isConnected) return
         page.innerHTML = loginHtml({
           switchMode,
+          localOpsMode,
           redirect,
           error,
           oidcEnabled: Boolean(status?.oidc_enabled),
           oidcButtonLabel: status?.oidc_button_label || '使用企业 SSO 登录',
           passwordLoginEnabled: status?.password_login_enabled !== false,
         })
-        wireLoginEvents(page, { switchMode, redirect })
+        wireLoginEvents(page, { switchMode, localOpsMode, redirect })
         queueMicrotask(() => {
           const focusId = switchMode ? '#login-username' : '#login-username'
           page.querySelector(focusId)?.focus()

@@ -339,6 +339,126 @@ def ensure_webui_principal(
     return p
 
 
+def ensure_workbench_principal(
+    *,
+    username: str,
+    role: str | None = None,
+    org_id: str = DEFAULT_ORG_ID,
+) -> Principal:
+    """Map an AI 工作台 (workbench) username to a shell principal; JIT provision.
+
+    登录统一方案1 (1.4.15): the shell authenticates against the workbench
+    login API; on success the workbench username becomes the shell session
+    principal. **No password row is created locally** — the workbench stays
+    the only credential source for this identity (attrs-only mapping row).
+
+    Resolution order:
+    1. existing ``workbench`` identity → reuse (deactivated → reject);
+    2. existing ``webui_username`` identity with the same username → link the
+       workbench identity to it (one username = one person = one principal);
+    3. otherwise provision a password-less principal + ``workbench`` identity.
+
+    ``role`` is the workbench role (admin/member); ``admin`` maps to shell org
+    admin via the existing promote path (idempotent).
+    """
+    from evoflow.authz import admin_grants as admin_mod
+
+    uname = str(username or "").strip()
+    if not uname:
+        raise ValueError("workbench username required")
+
+    existing = resolve_principal_by_identity("workbench", uname, org_id=org_id)
+    if existing is not None:
+        if str(existing.get("status") or "") == "deactivated":
+            raise ValueError("principal is deactivated")
+        principal = existing
+    else:
+        by_local = resolve_principal_by_identity("webui_username", uname, org_id=org_id)
+        if by_local is not None:
+            if str(by_local.get("status") or "") == "deactivated":
+                raise ValueError("principal is deactivated")
+            pid = str(by_local["principal_id"])
+
+            def _link(db: Any) -> None:
+                db.execute(
+                    """
+                    INSERT OR IGNORE INTO evoflow_principal_identities
+                        (org_id, provider, external_id, principal_id)
+                    VALUES (?, 'workbench', ?, ?)
+                    """,
+                    (org_id, uname, pid),
+                )
+
+            try:
+                run_db_transaction(_link)
+            except Exception:
+                logger.debug("link workbench identity to local user failed", exc_info=True)
+            principal = get_principal(pid, org_id=org_id) or by_local
+        else:
+            from evoflow.assets.paths import sanitize_user_asset_id
+
+            # Same sanitized-id convention as ensure_webui_principal so the
+            # workbench username renders as the user-visible principal_id.
+            principal_id = sanitize_user_asset_id(uname) or f"wb-{uuid.uuid4().hex[:12]}"
+            now = float(time.time())
+
+            def _write(db: Any) -> None:
+                db.execute(
+                    """
+                    INSERT OR IGNORE INTO evoflow_principals (
+                        principal_id, org_id, principal_type, display_name, primary_email,
+                        status, team_ids_json, attrs_json, created_at, updated_at
+                    ) VALUES (?, ?, 'internal', ?, NULL, 'active', '[]', ?, ?, ?)
+                    """,
+                    (
+                        principal_id,
+                        org_id,
+                        uname,
+                        json.dumps(
+                            {"auth_method": "workbench", "username": uname, **({"workbench_role": role} if role else {})},
+                            ensure_ascii=False,
+                        ),
+                        now,
+                        now,
+                    ),
+                )
+                db.execute(
+                    """
+                    INSERT OR IGNORE INTO evoflow_principal_identities
+                        (org_id, provider, external_id, principal_id)
+                    VALUES (?, 'workbench', ?, ?)
+                    """,
+                    (org_id, uname, principal_id),
+                )
+
+            try:
+                run_db_transaction(_write)
+            except Exception:
+                logger.debug("ensure_workbench_principal write failed", exc_info=True)
+            principal = (
+                resolve_principal_by_identity("workbench", uname, org_id=org_id)
+                or get_principal(principal_id, org_id=org_id)
+            )
+            if not principal:
+                raise RuntimeError("failed to ensure workbench principal")
+        if principal is not None:
+            try:
+                from evoflow.authz.scope_paths import ensure_principal_home
+
+                ensure_principal_home(principal)
+            except Exception:
+                logger.debug("ensure_principal_home after workbench login failed", exc_info=True)
+
+    if str(role or "").strip().lower() == "admin" and principal is not None:
+        try:
+            if not admin_mod.is_org_admin(str(principal["principal_id"]), org_id=org_id):
+                admin_mod.promote_org_admin(str(principal["principal_id"]), granted_by=None, org_id=org_id)
+        except Exception:
+            logger.debug("workbench role→org_admin promote failed", exc_info=True)
+
+    return principal
+
+
 LOCAL_ADMIN_PRINCIPAL_ID = "local-admin"
 
 
