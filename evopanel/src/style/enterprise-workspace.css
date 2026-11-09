@@ -137,6 +137,25 @@ html.evopanel-macos-titlebar .react-chat-aside-toolbar {
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent, #2563eb) 44%, transparent);
 }
 
+/* 1.4.14 侧栏「运营大脑」回程：紫系次级强调（取顶条小脑渐变尾色 #8b5cf6 邻域），
+ * 与「回工作台」品牌蓝区分但同级可见；bot-mode 不藏 aside 导航，全壳任意页可达 */
+.react-chat-aside-primary .react-chat-aside-nav-item.shell-nav-ops-brain {
+  color: #7c5cf0;
+  background: color-mix(in srgb, #7c5cf0 8%, transparent);
+  font-weight: 500;
+}
+.react-chat-aside-primary .react-chat-aside-nav-item.shell-nav-ops-brain .react-chat-aside-nav-ic {
+  color: #7c5cf0;
+  opacity: 1;
+}
+.react-chat-aside-primary .react-chat-aside-nav-item.shell-nav-ops-brain:hover,
+.react-chat-aside-primary .react-chat-aside-nav-item.shell-nav-ops-brain.active {
+  color: #7c5cf0;
+  background: color-mix(in srgb, #7c5cf0 16%, transparent);
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, #7c5cf0 30%, transparent);
+}
+
 .shell-aside-new-chat-btn {
   height: 30px;
   border-radius: 8px;

@@ -115,7 +115,7 @@ describe('1.4.8 顶空条回归（不回退）：workbench-mode 藏 tauri-main-c
     expect(ROUTER).toMatch(/refreshTauriMainChromeVisibility/)
   })
 
-  it('VERSION == 1.4.10', () => {
-    expect(VERSION).toBe('1.4.10')
+  it('VERSION == 1.4.14（1.4.14 侧栏回程刀 bump；1411–1413 曾漏更本断言致基线红）', () => {
+    expect(VERSION).toBe('1.4.14')
   })
 })

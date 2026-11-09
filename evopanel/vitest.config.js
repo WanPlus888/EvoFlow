@@ -50,6 +50,7 @@ export default defineConfig({
       'tests/workbench-return-nav.test.js',
       'tests/ops-bot-mode.test.js',
       'tests/ops-multi-bot-p0.test.js',
+      'tests/ops-brain-sidebar-return.test.js',
       'tests/aside-title-shimmer.test.js',
       'tests/chat-summary-panel.test.js',
       'tests/compose-attach.test.js',

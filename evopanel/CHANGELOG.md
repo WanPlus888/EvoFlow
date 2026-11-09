@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.4.14] - 2026-11-09
+
+**运营大脑侧栏回程入口：侧栏常驻「运营大脑」，全壳任意页一键回 Bot 聊天**（补入口，不推翻 bot-mode 生命周期）。
+
+### 本版要点
+
+- **侧栏钉常驻「运营大脑」**：位于「回工作台」正下方（紫系次级强调，不折叠进「更多」）；bot-mode 与全壳均可见。此前离开 `/chat` 后（点驾驶舱 / 工单 / 任务中心）侧栏没有再进 bot-mode 的入口，回 Bot 只能重进壳
+- **点击行为**：清 `ef-ops-bot-exited` 退出标记（`ops-bot-mode.js` 新导出 `reenterOpsBotMode()` helper，与冷启「尊重用户已退出」策略兼容）→ 强制 `enterOpsBotMode()`（同 hash 不短路，不指望 hashchange）→ 路由 `#/chat` 回 Bot 聊天主表面
+- **不回退项**：「更多运营能力」仍就地退出并写 exited；「回工作台」仍 `#/workbench-home`；离开 `/chat` 的 hashchange 自动退出生命周期保留；专员条 / 转交卡 / 投放草稿 Gate（1.4.13）不动
+- **测例**：新增 `ops-brain-sidebar-return.test.js`（11 例：钉位与排序 / 点击路径 / 退出语义回归 / CSS 显隐 / 千川黑名单 / VERSION）；拨正 1411–1413 遗留的 2 处陈旧 VERSION 断言（`workbench-return-nav` / `workbench-mode-shell` 仍钉 1.4.10，基线红 → 全绿）
+
+### 参与本次发版
+
+- 全栈开发工程师：侧栏运营大脑回程入口、reenterOpsBotMode helper、测例与陈旧断言拨正
+
+### 明确未做
+
+- 不动工作台仓（zhuhongftam）；不改登录统一；不碰千川 / 投放生产写；未审不装 /Applications；不打 Win；updater 仍关；DMG 发版另出
+
 ## [1.4.13] - 2026-11-09
 
 **运营终端多 Bot 分岗 P0：默认进 Bot 精简聊天 + 专员分岗 + 转交卡 + 投放建议草稿 Gate**（形态 C：主 Router + `@专员` / 专员卡片）。

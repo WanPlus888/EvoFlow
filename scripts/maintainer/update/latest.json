@@ -1,12 +1,12 @@
 {
-  "version": "1.4.13",
-  "minAppVersion": "1.4.13",
+  "version": "1.4.14",
+  "minAppVersion": "1.4.14",
   "updateKind": "full",
   "assetKind": "installer",
   "hash": "",
   "url": "https://localhost/evoflow-fork-auto-update-disabled.json",
   "size": 0,
-  "changelog": "电商运营终端 1.4.12：工作台套图/视频提交升为需确认级（未确认不出站不扣费，取消无副作用）；套图/视频岗新增只读联网调研；缺口匹配候选提示（可关），bash 与高危插件永不入选。自动更新关闭。",
+  "changelog": "电商运营终端 1.4.14：侧栏「回工作台」下方常驻「运营大脑」入口，任务中心 / 生产工单 / 驾驶舱等任意页面一键回到 Bot 聊天；「更多运营能力」退出与「回工作台」行为不变。自动更新关闭。",
   "notes": "brand fork; updater disabled; do not publish EvovexAI update URLs",
   "publishedAt": "2026-11-07T00:00:00Z"
 }

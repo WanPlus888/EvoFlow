@@ -137,7 +137,7 @@ describe('1.4.10 回归：1.4.9 回工作台 / 1.4.8 顶空条不回退', () => 
     )
   })
 
-  it('VERSION == 1.4.13（多 Bot 分岗 P0）', () => {
-    expect(VERSION).toBe('1.4.13')
+  it('VERSION == 1.4.14（侧栏运营大脑回程入口）', () => {
+    expect(VERSION).toBe('1.4.14')
   })
 })

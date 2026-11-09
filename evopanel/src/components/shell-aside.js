@@ -7,6 +7,7 @@ import { SHOW_KNOWLEDGE_OWNED_NAV } from '../lib/nav-visibility.js'
 import { installSessionListDebugGlobal } from '../lib/session-list-debug.js'
 import { mountSessionNotify } from '../lib/mount-session-notify.js'
 import { mountShellAccount } from './shell-account.js'
+import { reenterOpsBotMode } from './ops-bot-mode.js'
 import { version as APP_VERSION } from '../../package.json'
 import { SCIFI_UI_EVENT } from '../lib/sci-fi-theme.js'
 import { hasShimmerGradient } from '../lib/aside-title-shimmer.js'
@@ -437,6 +438,16 @@ function _bindShell(el) {
       _setNavMoreExpanded(next)
       return
     }
+    // 1.4.14 侧栏「运营大脑」回程：清 ef-ops-bot-exited + 强制 enterOpsBotMode + /chat。
+    // 必须直接 enter（同 hash 不触发 hashchange，不能指望路由钩子）；
+    // 勿落入下方通用 data-shell-nav 分支——那只是驾驶舱全壳导航。
+    const opsBrainBtn = e.target.closest('[data-act="enter-ops-brain"]')
+    if (opsBrainBtn) {
+      reenterOpsBotMode()
+      navigate('/chat')
+      _closeMobileShell()
+      return
+    }
     const navBtn = e.target.closest('[data-shell-nav]')
     if (navBtn) {
       const path = navBtn.dataset.shellNav
@@ -527,6 +538,12 @@ export function initShellAside(el) {
       <button type="button" class="react-chat-aside-nav-item shell-nav-back-workbench" data-shell-nav="/workbench-home" data-testid="nav-workbench-home" title="回工作台首页（/workbench-home，嵌电商图片工作台）" aria-label="回工作台">
         <span class="react-chat-aside-nav-ic" aria-hidden>${_lucide('backWorkbench')}</span>
         <span class="react-chat-aside-nav-label">回工作台</span>
+      </button>
+      <!-- 1.4.14 运营大脑回程：不走通用 shell-nav 直跳 /chat（那是驾驶舱全壳态）；
+           专用 data-act 分支清 ef-ops-bot-exited + 强制 enterOpsBotMode 后再路由 -->
+      <button type="button" class="react-chat-aside-nav-item shell-nav-ops-brain" data-act="enter-ops-brain" data-testid="nav-ops-brain" title="运营大脑（Bot 聊天）" aria-label="运营大脑">
+        <span class="react-chat-aside-nav-ic" aria-hidden>${_lucide('bot')}</span>
+        <span class="react-chat-aside-nav-label">运营大脑</span>
       </button>
       <div class="shell-aside-nav-divider" aria-hidden="true"></div>
       <button type="button" class="react-chat-aside-nav-item" data-shell-nav="/chat" data-shell-home="1" id="shell-btn-new-task" title="驾驶舱（今日总览）" aria-label="驾驶舱">

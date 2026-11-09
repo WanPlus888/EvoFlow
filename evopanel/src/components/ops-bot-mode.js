@@ -13,6 +13,8 @@
  *   + 「更多运营能力」（就地退出 bot-mode，回全壳；驾驶舱/工单/任务路由不删）
  * - 专员条（#ops-specialist-strip，1.4.13）：P0 岗位卡片；点击只预填 `@专员名 `
  * - 侧栏置顶品牌色「回工作台」（1.4.9）不动；顶空条 workbench-mode 规则不回退
+ * - 侧栏「运营大脑」常驻回程（1.4.14）：reenterOpsBotMode = 清 exited + 强制再进，
+ *   全壳任意页一键回 Bot 聊天（不推翻「更多运营能力」退出与 hashchange 生命周期）
  *
  * 生命周期：
  * - 冷启默认（1.4.13）：壳默认路由 = /chat；boot 落在 chat 表面且无
@@ -98,6 +100,21 @@ export function isOpsBotMode() {
   } catch {
     return false
   }
+}
+
+/**
+ * 侧栏「运营大脑」回程入口（1.4.14）：显式清「用户已退出」标记后强制再进 bot-mode。
+ * 冷启 initOpsBotMode 只在无 exited 标记时自动进；用户离开 /chat 后（exited=1），
+ * 从全壳任意页回 Bot 聊天必须走本 helper（或等价的清标记 + enter），
+ * 不能只 navigate('/chat')——那会落在驾驶舱全壳态且不进 bot-mode。
+ */
+export function reenterOpsBotMode() {
+  try {
+    sessionStorage.removeItem(BOT_MODE_EXITED_FLAG)
+  } catch {
+    /* ignore */
+  }
+  enterOpsBotMode()
 }
 
 function _applyChrome() {
